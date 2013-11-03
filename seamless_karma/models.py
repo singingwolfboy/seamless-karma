@@ -148,7 +148,7 @@ class Order(db.Model):
     @total_amount.expression
     def total_amount(cls):
         return (select([func.sum(OrderContribution.amount)])
-            .where(OrderContribution.order_id == cls.id)
+            .filter(OrderContribution.order_id == cls.id)
             .label('total_amount'))
 
     @hybrid_property
@@ -159,8 +159,8 @@ class Order(db.Model):
     @personal_contribution.expression
     def personal_contribution(cls):
         return (select([func.sum(OrderContribution.amount)])
-            .where(OrderContribution.order_id == cls.id)
-            .where(OrderContribution.user_id == cls.ordered_by_id)
+            .filter(OrderContribution.order_id == cls.id)
+            .filter(OrderContribution.user_id == cls.ordered_by_id)
             .label('personal_contribution'))
 
     @hybrid_property
@@ -171,8 +171,8 @@ class Order(db.Model):
     @external_contribution.expression
     def external_contribution(cls):
         return (select([func.sum(OrderContribution.amount)])
-            .where(OrderContribution.order_id == cls.id)
-            .where(OrderContribution.user_id != cls.ordered_by_id)
+            .filter(OrderContribution.order_id == cls.id)
+            .filter(OrderContribution.user_id != cls.ordered_by_id)
             .label('external_contribution'))
 
     @hybrid_method
@@ -188,8 +188,9 @@ class Order(db.Model):
                 func.sum(OrderContribution.amount),
                 Decimal('0.00')
             ))
-            .join(cls)
+            .filter(OrderContribution.order_id == cls.id)
             .filter(OrderContribution.user_id == user_id)
+            .label('user_{}_contribution'.format(user_id))
         )
 
 
