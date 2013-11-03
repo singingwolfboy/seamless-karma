@@ -160,7 +160,7 @@ class Order(db.Model):
     def personal_contribution(cls):
         return (select([func.sum(OrderContribution.amount)])
             .where(OrderContribution.order_id == cls.id)
-            .where(OrderContribution.user_id == cls.id)
+            .where(OrderContribution.user_id == cls.ordered_by_id)
             .label('personal_contribution'))
 
     @hybrid_property
@@ -172,7 +172,7 @@ class Order(db.Model):
     def external_contribution(cls):
         return (select([func.sum(OrderContribution.amount)])
             .where(OrderContribution.order_id == cls.id)
-            .where(OrderContribution.user_id != cls.id)
+            .where(OrderContribution.user_id != cls.ordered_by_id)
             .label('external_contribution'))
 
     @hybrid_method
