@@ -1,0 +1,8 @@
+Flask
+Flask-Heroku
+Flask-SQLAlchemy
+Flask-Restful
+Flask-Script
+iso8601
+psycopg2
+gunicorn
