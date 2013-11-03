@@ -15,19 +15,22 @@ class OrganizationUnallocatedForDate(Resource):
             for_date = date_type(date_str, "date")
         except ValueError:
             abort(400, message="invalid date: {!r}".format(date_str))
-        q = (db.session.query(
-                User.id, User.first_name, User.last_name,
-                User.karma.as_scalar(),
-                User.unallocated(for_date).as_scalar(),
-            )
+        # This ends up making *way* too many database calls, but I'll
+        # optimize it later.
+        users = (User.query
             .filter(User.organization_id == org_id)
             .order_by(desc(User.unallocated(for_date)), User.karma)
             .all()
         )
         ret = []
-        for id, first_name, last_name, karma, unallocated in q:
-            ret.append(dict(id=id, first_name=first_name,
-                last_name=last_name, karma=str(karma), unallocated=str(unallocated)))
+        for user in users:
+            ret.append({
+                "id": user.id,
+                "first_name": user.first_name,
+                "last_name": user.last_name,
+                "karma": str(user.karma),  # another query: ouch!
+                "unallocated": str(user.unallocated(for_date)), # another query: OUCH!
+            })
         return ret
 
 
