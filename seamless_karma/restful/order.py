@@ -167,11 +167,7 @@ class OrganizationOrderListForDate(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
     @marshal_with(mfields)
-    def get(self, org_id, date_str):
-        try:
-            for_date = date_type(date_str, "date")
-        except ValueError:
-            abort(400, message="invalid date: {!r}".format(date_str))
+    def get(self, org_id, for_date):
         return (models.Order.query
             .join(models.User)
             .filter(models.User.organization_id == org_id)
@@ -185,4 +181,4 @@ api.add_resource(Order, "/orders/<int:order_id>")
 api.add_resource(UserOrderList, "/users/<int:user_id>/orders")
 api.add_resource(OrganizationOrderList, "/organizations/<int:org_id>/orders")
 api.add_resource(OrganizationOrderListForDate,
-    "/organizations/<int:org_id>/orders/<date_str>")
+    "/organizations/<int:org_id>/orders/<date:for_date>")

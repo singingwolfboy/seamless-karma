@@ -12,12 +12,7 @@ from .decorators import handle_sqlalchemy_errors
 class OrganizationUnallocatedForDate(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
-    def get(self, org_id, date_str):
-        try:
-            for_date = date_type(date_str, "date")
-        except ValueError:
-            abort(400, message="invalid date: {!r}".format(date_str))
-
+    def get(self, org_id, for_date):
         total = (db.session.query(
                 sa.func.coalesce(
                     sa.func.sum(User.unallocated(for_date)),
@@ -47,4 +42,4 @@ class OrganizationUnallocatedForDate(Resource):
 
 
 api.add_resource(OrganizationUnallocatedForDate,
-    "/organizations/<int:org_id>/orders/<date_str>/unallocated")
+    "/organizations/<int:org_id>/orders/<date:for_date>/unallocated")
