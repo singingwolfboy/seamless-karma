@@ -17,7 +17,12 @@ class OrganizationUnallocatedForDate(Resource):
         except ValueError:
             abort(400, message="invalid date: {!r}".format(date_str))
 
-        total = (db.session.query(sa.func.sum(User.unallocated(for_date)))
+        total = (db.session.query(
+                sa.func.coalesce(
+                    sa.func.sum(User.unallocated(for_date)),
+                    Decimal('0.00')
+                )
+            )
             .filter(User.organization_id == org_id)
             .scalar()
         )
