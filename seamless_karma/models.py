@@ -1,5 +1,5 @@
 from seamless_karma import db
-from sqlalchemy import select, func
+import sqlalchemy as sa
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from decimal import Decimal
 
@@ -147,7 +147,7 @@ class Order(db.Model):
 
     @total_amount.expression
     def total_amount(cls):
-        return (select([func.sum(OrderContribution.amount)])
+        return (sa.select([sa.func.sum(OrderContribution.amount)])
             .filter(OrderContribution.order_id == cls.id)
             .label('total_amount'))
 
@@ -158,7 +158,7 @@ class Order(db.Model):
 
     @personal_contribution.expression
     def personal_contribution(cls):
-        return (select([func.sum(OrderContribution.amount)])
+        return (sa.select([sa.func.sum(OrderContribution.amount)])
             .filter(OrderContribution.order_id == cls.id)
             .filter(OrderContribution.user_id == cls.ordered_by_id)
             .label('personal_contribution'))
@@ -170,7 +170,7 @@ class Order(db.Model):
 
     @external_contribution.expression
     def external_contribution(cls):
-        return (select([func.sum(OrderContribution.amount)])
+        return (sa.select([sa.func.sum(OrderContribution.amount)])
             .filter(OrderContribution.order_id == cls.id)
             .filter(OrderContribution.user_id != cls.ordered_by_id)
             .label('external_contribution'))
@@ -184,8 +184,8 @@ class Order(db.Model):
     @user_contribution.expression
     def user_contribution(cls, user_id):
         return (db.session.query(
-            func.coalesce(
-                func.sum(OrderContribution.amount),
+            sa.func.coalesce(
+                sa.func.sum(OrderContribution.amount),
                 Decimal('0.00')
             ))
             .filter(OrderContribution.order_id == cls.id)
@@ -212,6 +212,15 @@ class OrderContribution(db.Model):
     def beneficiary(self):
         return self.order.ordered_by
 
+    @beneficiary.expression
+    def beneficiary(cls):
+        return User.query.join(Order).filter(Order.id == cls.order_id)
+
     @hybrid_property
     def is_external(self):
         return self.user_id != self.order.ordered_by_id
+
+    @is_external.expression
+    def is_external(cls):
+        return ((cls.order_id == Order.id) &
+            (cls.user_id == Order.ordered_by_id))

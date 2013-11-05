@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 
 from flask.ext.script import Manager, prompt_bool
-from sqlalchemy import create_engine
+import sqlalchemy as sa
 from seamless_karma import app, db
-from seamless_karma.models import User, Organization, Order
+from seamless_karma.models import User, Organization, Order, OrderContribution
 
 manager = Manager(app)
 dbmanager = Manager(usage="Perform database operations")
@@ -36,7 +36,7 @@ def sql():
     "Dumps SQL for creating database tables"
     def dump(sql, *multiparams, **params):
         print(sql.compile(dialect=engine.dialect))
-    engine = create_engine('postgresql://', strategy='mock', executor=dump)
+    engine = sa.create_engine('postgresql://', strategy='mock', executor=dump)
     db.metadata.create_all(engine, checkfirst=False)
 
 
@@ -46,7 +46,8 @@ manager.add_command("db", dbmanager)
 @manager.shell
 def make_shell_context():
     return dict(app=app, db=db,
-        User=User, Organization=Organization, Order=Order)
+        User=User, Organization=Organization, Order=Order,
+        OrderContribution=OrderContribution)
 
 if __name__ == "__main__":
     manager.run()

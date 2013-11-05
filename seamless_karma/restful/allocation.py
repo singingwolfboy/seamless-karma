@@ -1,6 +1,6 @@
 from seamless_karma import app, db, api, models
 from seamless_karma.models import User, Order
-from sqlalchemy import desc
+import sqlalchemy as sa
 from flask.ext.restful import Resource, abort, fields, marshal_with
 from datetime import datetime, date
 from . import TwoDecimalPlaceField, date_type
@@ -19,7 +19,7 @@ class OrganizationUnallocatedForDate(Resource):
         # optimize it later.
         users = (User.query
             .filter(User.organization_id == org_id)
-            .order_by(desc(User.unallocated(for_date)), User.karma)
+            .order_by(sa.desc(User.unallocated(for_date)), User.karma)
             .all()
         )
         ret = []
