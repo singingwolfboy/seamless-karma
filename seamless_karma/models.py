@@ -62,22 +62,23 @@ class User(db.Model):
 
     @karma.expression
     def karma(cls):
-        positive = (
-            db.session.query(func.sum(OrderContribution.amount).label('pos'))
-                .join(Order)
-                .filter(OrderContribution.user_id == cls.id)
-                .filter(Order.ordered_by_id != cls.id)
+        given = (db.session.query(
+            sa.func.coalesce(
+                sa.func.sum(OrderContribution.amount), Decimal('0.00')
+            ).label('given'))
+            .join(Order)
+            .filter(OrderContribution.user_id == cls.id)
+            .filter(Order.ordered_by_id != cls.id)
         )
-        negative = (
-            db.session.query(func.sum(OrderContribution.amount).label('neg'))
-                .join(Order)
-                .filter(OrderContribution.user_id != cls.id)
-                .filter(Order.ordered_by_id == cls.id)
+        received = (db.session.query(
+            sa.func.coalesce(
+                sa.func.sum(OrderContribution.amount), Decimal('0.00')
+            ).label('received'))
+            .join(Order)
+            .filter(OrderContribution.user_id != cls.id)
+            .filter(Order.ordered_by_id == cls.id)
         )
-        return db.session.query(func.coalesce(
-            positive.subquery().columns.pos - negative.subquery().columns.neg,
-            Decimal('0.00')
-        ).label('karma'))
+        return (given.as_scalar() - received.as_scalar()).label('karma')
 
     @hybrid_method
     def unallocated(self, date):
@@ -87,25 +88,16 @@ class User(db.Model):
 
     @unallocated.expression
     def unallocated(cls, date):
-        # return (db.session.query(
-        #         (cls.allocation - func.coalesce(
-        #             func.sum(OrderContribution.amount),
-        #             Decimal('0.00')
-        #         )).label('unallocated')
-        #     )
-        #     .join(Order).join(OrderContribution)
-        #     .filter(Order.for_date == date)
-        # )
         allocated = (db.session.query(
-            func.coalesce(
-                func.sum(OrderContribution.amount),
+            sa.func.coalesce(
+                sa.func.sum(OrderContribution.amount),
                 Decimal('0.00')
             ).label('allocated'))
             .join(Order)
             .filter(Order.for_date == date)
+            .filter(OrderContribution.user_id == cls.id)
         )
-        return db.session.query(
-            cls.allocation - allocated.subquery().columns.allocated)
+        return (cls.allocation - allocated).label('unallocated')
 
 
 class Order(db.Model):
@@ -147,7 +139,7 @@ class Order(db.Model):
 
     @total_amount.expression
     def total_amount(cls):
-        return (sa.select([sa.func.sum(OrderContribution.amount)])
+        return (db.session.query(sa.func.sum(OrderContribution.amount))
             .filter(OrderContribution.order_id == cls.id)
             .label('total_amount'))
 
@@ -158,7 +150,7 @@ class Order(db.Model):
 
     @personal_contribution.expression
     def personal_contribution(cls):
-        return (sa.select([sa.func.sum(OrderContribution.amount)])
+        return (db.session.query(sa.func.sum(OrderContribution.amount))
             .filter(OrderContribution.order_id == cls.id)
             .filter(OrderContribution.user_id == cls.ordered_by_id)
             .label('personal_contribution'))
@@ -170,7 +162,7 @@ class Order(db.Model):
 
     @external_contribution.expression
     def external_contribution(cls):
-        return (sa.select([sa.func.sum(OrderContribution.amount)])
+        return (db.session.query(sa.func.sum(OrderContribution.amount))
             .filter(OrderContribution.order_id == cls.id)
             .filter(OrderContribution.user_id != cls.ordered_by_id)
             .label('external_contribution'))

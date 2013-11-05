@@ -45,7 +45,7 @@ manager.add_command("db", dbmanager)
 
 @manager.shell
 def make_shell_context():
-    return dict(app=app, db=db,
+    return dict(app=app, db=db, sa=sa,
         User=User, Organization=Organization, Order=Order,
         OrderContribution=OrderContribution)
 

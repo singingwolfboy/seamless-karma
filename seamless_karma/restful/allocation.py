@@ -1,6 +1,7 @@
 from seamless_karma import app, db, api, models
 from seamless_karma.models import User, Order
 import sqlalchemy as sa
+import six
 from flask.ext.restful import Resource, abort, fields, marshal_with
 from datetime import datetime, date
 from . import TwoDecimalPlaceField, date_type
@@ -15,21 +16,26 @@ class OrganizationUnallocatedForDate(Resource):
             for_date = date_type(date_str, "date")
         except ValueError:
             abort(400, message="invalid date: {!r}".format(date_str))
-        # This ends up making *way* too many database calls, but I'll
-        # optimize it later.
-        users = (User.query
+
+        total = (db.session.query(sa.func.sum(User.unallocated(for_date)))
+            .filter(User.organization_id == org_id)
+            .scalar()
+        )
+        main_query = (db.session.query(User, User.unallocated(for_date), User.karma)
             .filter(User.organization_id == org_id)
             .order_by(sa.desc(User.unallocated(for_date)), User.karma)
-            .all()
         )
-        ret = []
-        for user in users:
-            ret.append({
+        ret = {
+            "total_unallocated": six.text_type(total),
+            "data": [],
+        }
+        for user, unallocated, karma in main_query:
+            ret["data"].append({
                 "id": user.id,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
-                "karma": str(user.karma),  # another query: ouch!
-                "unallocated": str(user.unallocated(for_date)), # another query: OUCH!
+                "unallocated": six.text_type(unallocated),
+                "karma": six.text_type(karma),
             })
         return ret
 
