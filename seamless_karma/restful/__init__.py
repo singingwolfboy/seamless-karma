@@ -2,6 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 import iso8601
 import copy
+import six
 from flask.ext.restful import fields
 
 TWOPLACES = Decimal(10) ** -2
@@ -11,7 +12,7 @@ TWOPLACES = Decimal(10) ** -2
 class TwoDecimalPlaceField(fields.Raw):
     def format(self, value):
         rounded = value.quantize(TWOPLACES)
-        return unicode(rounded)
+        return six.text_type(rounded)
 
 
 class ISOFormatField(fields.Raw):

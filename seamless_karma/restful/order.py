@@ -4,13 +4,14 @@ from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
 from decimal import Decimal, InvalidOperation
 from datetime import datetime, date
 import copy
+import six
 from . import TwoDecimalPlaceField, TWOPLACES, ISOFormatField, date_type, datetime_type
 from .decorators import handle_sqlalchemy_errors
 
 
 class OrderContributionField(fields.Raw):
     def format(self, value):
-        return {oc.user_id: unicode(oc.amount.quantize(TWOPLACES))
+        return {oc.user_id: six.text_type(oc.amount.quantize(TWOPLACES))
                     for oc in value}
 
 

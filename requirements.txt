@@ -6,7 +6,4 @@ Flask-Script
 iso8601
 psycopg2
 gunicorn
-
-# this dependency shouldn't need to be specified, because
-# Flask-Restful should declare it, but it doesnt.
 six
