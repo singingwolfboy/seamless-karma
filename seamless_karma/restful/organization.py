@@ -2,8 +2,8 @@ from seamless_karma import app, db, api, models
 from flask import request, url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
 from decimal import Decimal
-from . import TwoDecimalPlaceField
-from .decorators import handle_sqlalchemy_errors
+from .utils import TwoDecimalPlaceField, paginate_query
+from .decorators import handle_sqlalchemy_errors, resource_list
 
 mfields = {
     "id": fields.Integer,
@@ -18,9 +18,9 @@ parser.add_argument('default_allocation', type=Decimal)
 class OrganizationList(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
-    @marshal_with(mfields)
+    @resource_list(models.Organization, mfields)
     def get(self):
-        return models.Organization.query.order_by(models.Organization.id).all()
+        return models.Organization.query
 
     def post(self):
         args = parser.parse_args()

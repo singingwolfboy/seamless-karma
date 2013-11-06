@@ -5,7 +5,7 @@ import six
 from flask.ext.restful import Resource, abort, fields, marshal_with
 from datetime import datetime, date
 from decimal import Decimal
-from . import TwoDecimalPlaceField, date_type
+from .utils import TwoDecimalPlaceField, date_type
 from .decorators import handle_sqlalchemy_errors
 
 

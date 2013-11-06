@@ -1,61 +1,114 @@
-from flask.ext.restful import reqparse
+from datetime import datetime
+from decimal import Decimal
+import iso8601
+import copy
+import six
+from flask import request
+from flask.ext.restful import fields, reqparse, abort
 
-# argument subclass that can handle parsing dicts
-class Argument(reqparse.Argument):
-    def parse(self, request):
-        """Parses argument value(s) from the request, converting according to
-        the argument's type.
+## marshal fields ##
 
-        :param request: The flask request object to parse arguments from
-        """
-        source = self.source(request)
+TWOPLACES = Decimal(10) ** -2
 
-        results = []
+class TwoDecimalPlaceField(fields.Raw):
+    def format(self, value):
+        if isinstance(value, int):
+            value = Decimal(value)
+        rounded = value.quantize(TWOPLACES)
+        return six.text_type(rounded)
 
-        for operator in self.operators:
-            name = self.name + operator.replace("=", "", 1)
-            if name in source:
-                # Account for MultiDict and regular dict
-                if hasattr(source, "getlist"):
-                    values = source.getlist(name)
-                else:
-                    values = [source.get(name)]
 
-                for value in values:
-                    if not self.case_sensitive:
-                        value = value.lower()
-                    if self.choices and value not in self.choices:
-                        self.handle_validation_error(ValueError(
-                            u"{0} is not a valid choice".format(value)))
-                    try:
-                        value = self.convert(value, operator)
-                    except Exception as error:
-                        if self.ignore:
-                            continue
+class ISOFormatField(fields.Raw):
+    def format(self, value):
+        return value.isoformat()
 
-                        self.handle_validation_error(error)
 
-                    results.append(value)
+## reqparse types ##
 
-        if not results and self.required:
-            if isinstance(self.location, six.string_types):
-                error_msg = u"{0} is required in {1}".format(
-                    self.name,
-                    self.location
-                )
-            else:
-                error_msg = u"{0} is required in {1}".format(
-                    self.name,
-                    ' or '.join(self.location)
-                )
-            self.handle_validation_error(ValueError(error_msg))
+def string_or_int_type(value, name):
+    """
+    If the first character is a number, parse as an integer.
+    Otherwise, assume string.
+    """
+    if value[0].isdigit():
+        try:
+            return int(value)
+        except ValueError:
+            raise ValueError(u"{} string may not start with a number".format(name))
+    else:
+        return value
 
-        if not results:
-            return self.default
 
-        if self.action == 'append':
-            return results
+def date_type(value, name):
+    try:
+        return datetime.strptime(value, "%Y-%m-%d").date()
+    except ValueError:
+        raise ValueError(u"{} string must be a YYYY-MM-DD formatted date".format(name))
 
-        if self.action == 'store' or len(results) == 1:
-            return results[0]
-        return results
+
+def datetime_type(value, name):
+    try:
+        return iso8601.parse_date(value)
+    except:
+        raise ValueError(u"{} string must be an ISO-8601 formatted datetime")
+
+## utility functions ##
+
+def make_optional(parser):
+    """
+    Returns a copy of the parser, with all of its arguments set to
+    required=False and default=None. Useful for API endpoints that do
+    partial updates to resources.
+    """
+    p2 = copy.deepcopy(parser)
+    args = []
+    for arg in p2.args:
+        arg.required = False
+        arg.default = None
+        args.append(arg)
+    p2.args = args
+    return p2
+
+
+def paginate_query(query, order_cls=None, default_limit=50, max_limit=200):
+    """
+    Apply `limit`, `offset`, and `order_by` to query, if specified.
+    """
+    if "limit" in request.values:
+        try:
+            limit = int(request.values["limit"])
+        except ValueError:
+            abort(400, "limit must be an integer, not {!r}".format(
+                request.values["limit"]))
+        if limit < 1:
+            abort(400, "limit must be greater than 0")
+        if max_limit and limit > max_limit:
+            abort(400, "maximum limit is {}".format(max_limit))
+    else:
+        limit = default_limit
+    query = query.limit(limit)
+
+    if "offset" in request.values:
+        try:
+            offset = int(request.values["offset"])
+        except ValueError:
+            abort(400, "offset must be an integer, not {!r}".format(
+                request.values["limit"]))
+        if limit < 0:
+            abort(400, "offset cannot be negative")
+        query = query.offset(offset)
+
+    if order_cls:
+        if "order" in request.values:
+            orders = []
+            for order_str in request.values["order"].split(','):
+                if not hasattr(order_cls, order_str):
+                    abort(400, "cannot order on attribute {!r}".format(order_str))
+                orders.append(getattr(order_cls, order_str))
+            query = query.order_by(*orders)
+        else:
+            query = query.order_by(order_cls.id)
+
+    return query
+
+

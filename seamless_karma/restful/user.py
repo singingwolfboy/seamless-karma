@@ -2,8 +2,9 @@ from seamless_karma import app, db, api, models
 from flask import request, url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
 from decimal import Decimal
-from . import TwoDecimalPlaceField, string_or_int_type, make_optional
-from .decorators import handle_sqlalchemy_errors
+from .utils import (TwoDecimalPlaceField, string_or_int_type, make_optional,
+    paginate_query)
+from .decorators import handle_sqlalchemy_errors, resource_list
 
 
 mfields = {
@@ -31,9 +32,9 @@ parser.add_argument('allocation', type=Decimal,
 class UserList(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
-    @marshal_with(mfields)
+    @resource_list(models.User, mfields)
     def get(self):
-        return models.User.query.order_by(models.User.id).all()
+        return models.User.query
 
     def get_or_create_org(self, args):
         if isinstance(args["organization"], int):

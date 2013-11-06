@@ -5,14 +5,15 @@ from decimal import Decimal, InvalidOperation
 from datetime import datetime, date
 import copy
 import six
-from . import TwoDecimalPlaceField, TWOPLACES, ISOFormatField, date_type, datetime_type
-from .decorators import handle_sqlalchemy_errors
+from .utils import (TwoDecimalPlaceField, TWOPLACES, ISOFormatField,
+    date_type, datetime_type)
+from .decorators import handle_sqlalchemy_errors, resource_list
 
 
 class OrderContributionField(fields.Raw):
     def format(self, value):
         return {oc.user_id: six.text_type(oc.amount.quantize(TWOPLACES))
-                    for oc in value}
+                for oc in value}
 
 
 mfields = {
@@ -84,9 +85,9 @@ order_parser.add_argument('ordered_by', dest="ordered_by_id", type=int, required
 class OrderList(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
-    @marshal_with(mfields)
+    @resource_list(models.Order, mfields)
     def get(self):
-        return models.Order.query.order_by(models.Order.id).all()
+        return models.Order.query
 
     def post(self):
         args = order_parser.parse_args()
@@ -134,12 +135,11 @@ class Order(Resource):
 class UserOrderList(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
-    @marshal_with(mfields)
+    @resource_list(models.Order, mfields)
     def get(self, user_id):
         return (models.Order.query
             .filter(models.Order.user_id == user_id)
-            .order_by(models.Order.id)
-            .all())
+        )
 
     def post(self, user_id):
         args = user_order_parser.parse_args()
@@ -154,26 +154,24 @@ class UserOrderList(Resource):
 class OrganizationOrderList(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
-    @marshal_with(mfields)
+    @resource_list(models.Order, mfields)
     def get(self, org_id):
         return (models.Order.query
             .join(models.User)
             .filter(models.User.organization_id == org_id)
-            .order_by(models.Order.id)
-            .all())
+        )
 
 
 class OrganizationOrderListForDate(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
-    @marshal_with(mfields)
+    @resource_list(models.Order, mfields)
     def get(self, org_id, for_date):
         return (models.Order.query
             .join(models.User)
             .filter(models.User.organization_id == org_id)
             .filter(models.Order.for_date == for_date)
-            .order_by(models.Order.id)
-            .all())
+        )
 
 
 api.add_resource(OrderList, "/orders")
