@@ -2,7 +2,7 @@ from seamless_karma import app, db, api, models
 from flask import request, url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
 from decimal import Decimal
-from .utils import TwoDecimalPlaceField, paginate_query
+from .utils import TwoDecimalPlaceField
 from .decorators import handle_sqlalchemy_errors, resource_list
 
 mfields = {
