@@ -12,8 +12,10 @@ from .decorators import handle_sqlalchemy_errors, resource_list
 
 class OrderContributionField(fields.Raw):
     def format(self, value):
-        return {oc.user_id: six.text_type(oc.amount.quantize(TWOPLACES))
-                for oc in value}
+        return [{
+            "user_id": oc.user_id,
+            "total": six.text_type(oc.amount.quantize(TWOPLACES)),
+        } for oc in value]
 
 
 mfields = {
