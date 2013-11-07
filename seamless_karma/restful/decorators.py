@@ -1,11 +1,13 @@
-import sqlalchemy as sa
 from functools import wraps
+try:
+    from urllib.parse import urlsplit
+except ImportError:
+    from urlparse import urlsplit
+
+import sqlalchemy as sa
 from flask import request
 from flask.ext.restful import abort, marshal
-try:
-    from urllib.parse import urlparse, urlunparse
-except ImportError:
-    from urlparse import urlparse, urlunparse
+from .utils import update_url_query
 
 
 def handle_sqlalchemy_errors(func):
@@ -58,11 +60,24 @@ def resource_list(model, marshal_fields, default_limit=50, max_limit=200):
             query = func(*args, **kwargs)
 
             # build the results
-            total = query.count()
-            values = query.order_by(*orders).limit(limit).offset(offset).all()
-            return {
-                "total": total,
-                "data": marshal(values, marshal_fields),
+            count = query.count()
+            results = query.order_by(*orders).limit(limit).offset(offset).all()
+            output = {
+                "count": count,
+                "data": marshal(results, marshal_fields),
             }
+            # just get path and query args from URL
+            scheme, netloc, path, query, fragment = urlsplit(request.url)
+            url = "{path}?{query}".format(path=path, query=query)
+            offset = offset or 0
+            if count > offset + limit:
+                output["next"] = update_url_query(url, offset=offset+limit)
+            if offset > 0:
+                new_offset = offset - limit
+                if new_offset <= 0:
+                    new_offset = None
+                output["prev"] = update_url_query(url, offset=new_offset)
+            return output
+
         return inner
     return outer
