@@ -6,6 +6,7 @@ from decimal import Decimal
 
 class Organization(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    seamless_id = db.Column(db.Integer)
     name = db.Column(db.String(256), unique=True, nullable=False)
     default_allocation = db.Column(db.Numeric(scale=2))
 
@@ -15,6 +16,7 @@ class Organization(db.Model):
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    seamless_id = db.Column(db.Integer)
     username = db.Column(db.String(256), unique=True, nullable=False)
     first_name = db.Column(db.String(256), nullable=False)
     last_name = db.Column(db.String(256), nullable=False)
@@ -99,13 +101,23 @@ class User(db.Model):
         )
         return (cls.allocation - allocated).label('unallocated')
 
+class Vendor(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    seamless_id = db.Column(db.Integer)
+    name = db.Column(db.String(256), nullable=False)
+    latitude = db.Column(db.Numeric)
+    longitude = db.Column(db.Numeric)
 
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    seamless_id = db.Column(db.Integer)
     for_date = db.Column(db.Date, nullable=False)
     placed_at = db.Column(db.DateTime, nullable=False)
-    restaurant = db.Column(db.String(256))
 
+    vendor_id = db.Column(db.Integer, db.ForeignKey('vendor.id'),
+        nullable=False)
+    vendor = db.relationship(Vendor,
+        backref="orders")
     ordered_by_id = db.Column(db.Integer, db.ForeignKey('user.id'),
         nullable=False)
     ordered_by = db.relationship(User,
@@ -118,11 +130,11 @@ class Order(db.Model):
         return u"<Order {date}>".format(date=self.for_date.isoformat())
 
     @classmethod
-    def create(cls, for_date, placed_at, restaurant, ordered_by_id, contributions):
+    def create(cls, for_date, placed_at, ordered_by_id, contributions, seamless_id=None):
         order = cls(
+            seamless_id=seamless_id,
             for_date=for_date,
             placed_at=placed_at,
-            restaurant=restaurant,
             ordered_by_id=ordered_by_id,
         )
         for contributor_id, amount in contributions.items():

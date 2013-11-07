@@ -26,19 +26,19 @@ class OrganizationUnallocatedForDate(Resource):
             .filter(User.organization_id == org_id)
             .order_by(sa.desc(User.unallocated(for_date)), User.karma)
         )
-        ret = {
+        output = {
             "total_unallocated": six.text_type(total),
             "data": [],
         }
         for user, unallocated, karma in main_query:
-            ret["data"].append({
+            output["data"].append({
                 "id": user.id,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
                 "unallocated": six.text_type(unallocated),
                 "karma": six.text_type(karma),
             })
-        return ret
+        return output
 
 
 api.add_resource(OrganizationUnallocatedForDate,

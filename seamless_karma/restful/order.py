@@ -20,10 +20,11 @@ class OrderContributionField(fields.Raw):
 
 mfields = {
     "id": fields.Integer,
+    "seamless_id": fields.Integer(default=None),
+    "vendor_id": fields.Integer,
     "ordered_by": fields.Integer(attribute="ordered_by_id"),
     "for_date": ISOFormatField,
     "placed_at": ISOFormatField,
-    "restaurant": fields.String,
     "total": TwoDecimalPlaceField(attribute="total_amount"),
     "contributions": OrderContributionField,
 }
@@ -78,10 +79,11 @@ user_order_parser = reqparse.RequestParser()
 user_order_parser.args.append(ContributionArgument(required=True))
 user_order_parser.add_argument('for_date', type=date_type, default=date.today())
 user_order_parser.add_argument('placed_at', type=datetime_type, default=datetime.now())
-user_order_parser.add_argument('restaurant', default="")
+user_order_parser.add_argument('vendor_id', int)
+user_order_parser.add_argument('seamless_id', int)
 
 order_parser = copy.deepcopy(user_order_parser)
-order_parser.add_argument('ordered_by', dest="ordered_by_id", type=int, required=True)
+order_parser.add_argument('ordered_by_id', type=int, required=True)
 
 
 class OrderList(Resource):
@@ -117,7 +119,7 @@ class Order(Resource):
     def put(self, order_id):
         o = self.get_order_or_abort(order_id)
         args = make_optional(order_parser).parse_args()
-        for attr in ('for_date', 'placed_at', 'restaurant', 'ordered_by'):
+        for attr in ('seamless_id', 'vendor_id', 'ordered_by_id', 'for_date', 'placed_at'):
             if attr in args:
                 setattr(u, attr, args[attr])
         if args.contributions:

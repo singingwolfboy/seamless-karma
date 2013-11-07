@@ -8,6 +8,7 @@ from .decorators import handle_sqlalchemy_errors, resource_list
 
 mfields = {
     "id": fields.Integer,
+    "seamless_id": fields.Integer(default=None),
     "username": fields.String,
     "first_name": fields.String,
     "last_name": fields.String,
@@ -21,6 +22,7 @@ mfields = {
 }
 
 parser = reqparse.RequestParser()
+parser.add_argument('seamless_id', type=int)
 parser.add_argument('username', required=True)
 parser.add_argument('organization', type=string_or_int_type, required=True)
 parser.add_argument('first_name', required=True)
@@ -63,6 +65,9 @@ class UserList(Resource):
         args['organization'] = org
         user = models.User(**args)
         db.session.add(user)
+        if user.allocation is None:
+            abort(400, message="allocation is required in values "
+                "(organization has no default allocation set)")
         db.session.commit()
         location = url_for('user', user_id=user.id)
         return {"message": "created"}, 201, {"Location": location}
@@ -85,7 +90,7 @@ class User(Resource):
     def put(self, user_id):
         u = self.get_user_or_abort(user_id)
         args = make_optional(parser).parse_args()
-        for attr in ('username', 'first_name', 'last_name', 'allocation'):
+        for attr in ('seamless_id', 'username', 'first_name', 'last_name', 'allocation'):
             if attr in args:
                 setattr(u, attr, args[attr])
         db.session.add(u)

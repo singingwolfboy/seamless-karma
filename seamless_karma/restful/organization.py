@@ -7,11 +7,13 @@ from .decorators import handle_sqlalchemy_errors, resource_list
 
 mfields = {
     "id": fields.Integer,
+    "seamless_id": fields.Integer(default=None),
     "name": fields.String,
     "default_allocation": TwoDecimalPlaceField,
 }
 
 parser = reqparse.RequestParser()
+parser.add_argument('seamless_id', type=int)
 parser.add_argument('name')
 parser.add_argument('default_allocation', type=Decimal)
 
@@ -48,7 +50,7 @@ class Organization(Resource):
     def put(self, org_id):
         o = self.get_org_or_abort(org_id)
         args = make_optional(parser).parse_args()
-        for attr in ('name', 'default_allocation'):
+        for attr in ('seamless_id', 'name', 'default_allocation'):
             if attr in args:
                 setattr(o, attr, args[attr])
         db.session.add(o)
