@@ -20,7 +20,7 @@ def handle_sqlalchemy_errors(func):
     return wrapper
 
 
-def resource_list(model, marshal_fields, default_limit=50, max_limit=200):
+def resource_list(model, marshal_fields, default_limit=50, max_limit=200, parser=None):
     def outer(func):
         @wraps(func)
         def inner(*args, **kwargs):
@@ -58,6 +58,12 @@ def resource_list(model, marshal_fields, default_limit=50, max_limit=200):
 
             # process the function
             query = func(*args, **kwargs)
+
+            # allow users to filter by parser fields
+            if parser:
+                for name, value in parser.parse_args().items():
+                    if hasattr(model, name) and value is not None:
+                        query = query.filter(getattr(model, name) == value)
 
             # build the results
             count = query.count()

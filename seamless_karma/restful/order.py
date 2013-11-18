@@ -1,4 +1,5 @@
 from seamless_karma import app, db, api, models
+import sqlalchemy as sa
 from flask import request, url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
 from decimal import Decimal, InvalidOperation
@@ -49,8 +50,14 @@ class ContributionArgument(reqparse.Argument):
         try:
             return int(value)
         except ValueError:
-            raise ValueError("contributed_by must be a user ID, "
-                "not {!r}".format(value))
+            try:
+                user = models.User.query.filter(models.User.username == value).one()
+            except sa.orm.exc.NoResultFound:
+                raise ValueError("contributed_by must be a user ID or username; "
+                    "{!r} is not a user ID, and no user exists with "
+                    "that username".format(value))
+            else:
+                return user.id
 
     def convert(self, request):
         amounts = [self.convert_amount(value)
@@ -63,7 +70,8 @@ class ContributionArgument(reqparse.Argument):
         if len(user_ids) != len(set(user_ids)):
             raise ValueError("contributed_by values may not contain duplicates")
         if self.required and not user_ids:
-            raise ValueError("at least one pair of contributed_by and contributed_amount values is required")
+            raise ValueError("at least one pair of contributed_by and "
+                "contributed_amount values is required")
         return dict(zip(user_ids, amounts))
 
     def parse(self, request):
@@ -99,7 +107,7 @@ class OrderList(Resource):
         db.session.add(order)
         db.session.commit()
         location = url_for('order', order_id=order.id)
-        return {"message": "created"}, 201, {"Location": location}
+        return {"message": "created", "id": order.id}, 201, {"Location": location}
 
 
 class Order(Resource):
@@ -151,8 +159,8 @@ class UserOrderList(Resource):
         order = models.Order.create(**args)
         db.session.add(order)
         db.session.commit()
-        location = url_for('order', user_id=order.id)
-        return {"message": "created"}, 201, {"Location": location}
+        location = url_for('order', order_id=order.id)
+        return {"message": "created", "id": order.id}, 201, {"Location": location}
 
 
 class OrganizationOrderList(Resource):

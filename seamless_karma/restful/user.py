@@ -1,4 +1,5 @@
 from seamless_karma import app, db, api, models
+import sqlalchemy as sa
 from flask import request, url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
 from decimal import Decimal
@@ -14,7 +15,7 @@ mfields = {
     "last_name": fields.String,
     "allocation": TwoDecimalPlaceField,
     "karma": TwoDecimalPlaceField,
-    "organization": fields.Integer(attribute="organization_id"),
+    "organization_id": fields.Integer,
     # "organization": fields.Nested({
     #     "id": fields.Integer,
     #     "name": fields.String,
@@ -24,7 +25,8 @@ mfields = {
 parser = reqparse.RequestParser()
 parser.add_argument('seamless_id', type=int)
 parser.add_argument('username', required=True)
-parser.add_argument('organization', type=string_or_int_type, required=True)
+parser.add_argument('organization') # one of org or org_id is required
+parser.add_argument('organization_id', type=int)
 parser.add_argument('first_name', required=True)
 parser.add_argument('last_name', required=True)
 parser.add_argument('allocation', type=Decimal,
@@ -33,35 +35,40 @@ parser.add_argument('allocation', type=Decimal,
 class UserList(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
-    @resource_list(models.User, mfields)
+    @resource_list(models.User, mfields, parser=make_optional(parser))
     def get(self):
         return models.User.query
 
     def get_or_create_org(self, args):
-        if isinstance(args["organization"], int):
-            org = models.Organization.query.get(args["organization"])
+        if args.get("organization_id") is not None:
+            org = models.Organization.query.get(args["organization_id"])
             if not org:
                 abort(400, message="invalid organization ID")
             return org
 
-        # we have a string, so it must be the org name
-        org = models.Organization.query.filter_by(name=args["organization"]).first()
-        if not org:
-            # we can dynamically create it if we have an allocation value
-            if not args.get("allocation"):
-                abort(400, message="organization does not exist; "
-                    "cannot create without allocation value")
-            org = models.Organization(
-                name=args["organization"],
-                default_allocation=args["allocation"],
-            )
-            db.session.add(org)
+        if args.get("organization") is not None:
+            org_name = args["organization"]
+            org = models.Organization.query.filter_by(name=org_name).first()
+            if not org:
+                # we can dynamically create it if we have an allocation value
+                if not args.get("allocation"):
+                    abort(400, message="organization does not exist; "
+                        "cannot create without allocation value")
+                org = models.Organization(
+                    name=org_name,
+                    default_allocation=args["allocation"],
+                )
+                db.session.add(org)
 
-        return org
+            return org
+
+        abort(400, message="one of `organization` or `organization_id` is required")
 
     def post(self):
         args = parser.parse_args()
         org = self.get_or_create_org(args)
+        if "organization_id" in args:
+            del args["organization_id"]
         args['organization'] = org
         user = models.User(**args)
         db.session.add(user)
@@ -70,7 +77,7 @@ class UserList(Resource):
                 "(organization has no default allocation set)")
         db.session.commit()
         location = url_for('user', user_id=user.id)
-        return {"message": "created"}, 201, {"Location": location}
+        return {"message": "created", "id": user.id}, 201, {"Location": location}
 
 
 class User(Resource):
@@ -103,5 +110,40 @@ class User(Resource):
         db.session.commit()
         return {"message": "deleted"}, 200
 
+
+class UserByUsername(Resource):
+    method_decorators = [handle_sqlalchemy_errors]
+
+    def get_user_or_abort(self, username):
+        try:
+            return (models.User.query
+                    .filter(models.User.username == username)
+                    .one()
+            )
+        except sa.orm.exc.NoResultFound:
+            abort(404, message="User {} does not exist".format(username))
+
+    @marshal_with(mfields)
+    def get(self, username):
+        return self.get_user_or_abort(username)
+
+    @marshal_with(mfields)
+    def put(self, username):
+        u = self.get_user_or_abort(username)
+        args = make_optional(parser).parse_args()
+        for attr in ('seamless_id', 'first_name', 'last_name', 'allocation'):
+            if attr in args:
+                setattr(u, attr, args[attr])
+        db.session.add(u)
+        db.session.commit()
+        return u
+
+    def delete(self, username):
+        u = self.get_user_or_abort(username)
+        db.session.delete(u)
+        db.session.commit()
+        return {"message": "deleted"}, 200
+
 api.add_resource(UserList, "/users")
 api.add_resource(User, "/users/<int:user_id>")
+api.add_resource(UserByUsername, "/users/<username>")

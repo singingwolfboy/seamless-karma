@@ -1,4 +1,5 @@
 from seamless_karma import app, db, api, models
+import sqlalchemy as sa
 from flask import request, url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
 from decimal import Decimal
@@ -30,7 +31,7 @@ class OrganizationList(Resource):
         db.session.add(org)
         db.session.commit()
         location = url_for('organization', org_id=org.id)
-        return {"message": "created"}, 201, {"Location": location}
+        return {"message": "created", "id": "org.id"}, 201, {"Location": location}
 
 
 class Organization(Resource):
@@ -64,5 +65,40 @@ class Organization(Resource):
         return {"message": "deleted"}, 200
 
 
+class OrganizationByName(Resource):
+    method_decorators = [handle_sqlalchemy_errors]
+
+    def get_org_or_abort(self, name):
+        try:
+            return (models.Organization.query
+                    .filter(models.Organization.name == name)
+                    .one()
+            )
+        except sa.orm.exc.NoResultFound:
+            abort(404, message="Organization {} does not exist".format(username))
+
+    @marshal_with(mfields)
+    def get(self, name):
+        return self.get_org_or_abort(name)
+
+    @marshal_with(mfields)
+    def put(self, name):
+        o = self.get_org_or_abort(name)
+        args = make_optional(parser).parse_args()
+        for attr in ('seamless_id', 'default_allocation'):
+            if attr in args:
+                setattr(o, attr, args[attr])
+        db.session.add(o)
+        db.session.commit()
+        return o
+
+    def delete(self, name):
+        o = self.get_org_or_abort(name)
+        db.session.delete(o)
+        db.session.commit()
+        return {"message": "deleted"}, 200
+
+
 api.add_resource(OrganizationList, "/organizations")
 api.add_resource(Organization, "/organizations/<int:org_id>")
+api.add_resource(OrganizationByName, "/organizations/<name>")

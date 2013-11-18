@@ -27,11 +27,12 @@ class User(db.Model):
     organization = db.relationship(Organization,
         backref=db.backref('users', lazy="dynamic"))
 
-    def __init__(self, username, first_name, last_name, organization, allocation=None):
+    def __init__(self, username, first_name, last_name, organization, allocation=None, seamless_id=None):
         self.username = username
         self.first_name = first_name
         self.last_name = last_name
         self.organization = organization
+        self.seamless_id = seamless_id
         self.allocation = allocation or organization.default_allocation
 
     def __repr__(self):
