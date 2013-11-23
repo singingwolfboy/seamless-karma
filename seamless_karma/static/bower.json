@@ -1,0 +1,14 @@
+{
+  "name": "seamless-karma",
+  "version": "0.0.1",
+  "dependencies": {
+    "jquery": "*",
+    "angular": "*"
+  },
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "components",
+    "bower_components"
+  ]
+}

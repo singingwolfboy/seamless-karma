@@ -1,0 +1,8 @@
+{
+    "dependencies": {
+        "bower": "*"
+    },
+    "scripts": {
+        "postinstall": "cd seamless_karma/static/ && ../../node_modules/bower/bin/bower install && cd ../../"
+    }
+}
