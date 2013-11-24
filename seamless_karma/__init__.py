@@ -13,4 +13,5 @@ app.url_map.converters["date"] = ISODateConverter
 
 from .models import *
 from .views import *
+from .context_processors import *
 from .restful import *

@@ -2,6 +2,11 @@
   "name": "seamless-karma",
   "version": "0.0.1",
   "dependencies": {
+    "almond": "*",
+    "requirejs": "*",
+    "require-cs": "*",
+    "coffee-script": "https://raw.github.com/jashkenas/coffee-script/1.6.3/extras/coffee-script.js",
+
     "jquery": "*",
     "angular": "*"
   },
