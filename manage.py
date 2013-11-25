@@ -1,14 +1,13 @@
 #!/usr/bin/env python
-
+from seamless_karma import create_app
+from seamless_karma.models import db, User, Organization, Order, OrderContribution
 from flask.ext.script import Manager, Server, prompt_bool
 import sqlalchemy as sa
-from seamless_karma import app, db
-from seamless_karma.models import User, Organization, Order, OrderContribution
 import subprocess as sp
 import os.path
 import hashlib
 
-manager = Manager(app)
+manager = Manager(create_app)
 dbmanager = Manager(usage="Perform database operations")
 
 
@@ -48,7 +47,7 @@ manager.add_command("db", dbmanager)
 
 @manager.shell
 def make_shell_context():
-    return dict(app=app, db=db, sa=sa,
+    return dict(db=db, sa=sa,
         User=User, Organization=Organization, Order=Order,
         OrderContribution=OrderContribution)
 
@@ -59,8 +58,11 @@ def compile_config_js():
 
 class ServerWithPrerun(Server):
     def handle(self, *args, **kwargs):
-        compile_config_js()
+        self.prerun()
         super(ServerWithPrerun, self).handle(*args, **kwargs)
+
+    def prerun(self):
+        compile_config_js()
 
 manager.add_command("runserver", ServerWithPrerun())
 
@@ -77,7 +79,6 @@ def build():
     hash = hashlib.md5(content).hexdigest()[0:8]
     with open(fname.format(hash="."+hash), "w") as f:
         f.write(content)
-
 
 
 if __name__ == "__main__":

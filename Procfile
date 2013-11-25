@@ -1,1 +1,1 @@
-web: gunicorn seamless_karma:app
+web: gunicorn seamless_karma:create_app\(\)

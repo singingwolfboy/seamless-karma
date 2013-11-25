@@ -1,4 +1,5 @@
-from seamless_karma import app, db, api, models
+from seamless_karma.models import db, User, Organization
+from seamless_karma.extensions import api
 import sqlalchemy as sa
 from flask import request, url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
@@ -35,26 +36,26 @@ parser.add_argument('allocation', type=Decimal,
 class UserList(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
-    @resource_list(models.User, mfields, parser=make_optional(parser))
+    @resource_list(User, mfields, parser=make_optional(parser))
     def get(self):
-        return models.User.query
+        return User.query
 
     def get_or_create_org(self, args):
         if args.get("organization_id") is not None:
-            org = models.Organization.query.get(args["organization_id"])
+            org = Organization.query.get(args["organization_id"])
             if not org:
                 abort(400, message="invalid organization ID")
             return org
 
         if args.get("organization") is not None:
             org_name = args["organization"]
-            org = models.Organization.query.filter_by(name=org_name).first()
+            org = Organization.query.filter_by(name=org_name).first()
             if not org:
                 # we can dynamically create it if we have an allocation value
                 if not args.get("allocation"):
                     abort(400, message="organization does not exist; "
                         "cannot create without allocation value")
-                org = models.Organization(
+                org = Organization(
                     name=org_name,
                     default_allocation=args["allocation"],
                 )
@@ -70,7 +71,7 @@ class UserList(Resource):
         if "organization_id" in args:
             del args["organization_id"]
         args['organization'] = org
-        user = models.User(**args)
+        user = User(**args)
         db.session.add(user)
         if user.allocation is None:
             abort(400, message="allocation is required in values "
@@ -80,11 +81,11 @@ class UserList(Resource):
         return {"message": "created", "id": user.id}, 201, {"Location": location}
 
 
-class User(Resource):
+class UserDetail(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
     def get_user_or_abort(self, id):
-        u = models.User.query.get(id)
+        u = User.query.get(id)
         if not u:
             abort(404, message="User {} does not exist".format(id))
         return u
@@ -116,10 +117,7 @@ class UserByUsername(Resource):
 
     def get_user_or_abort(self, username):
         try:
-            return (models.User.query
-                    .filter(models.User.username == username)
-                    .one()
-            )
+            return User.query.filter(User.username == username).one()
         except sa.orm.exc.NoResultFound:
             abort(404, message="User {} does not exist".format(username))
 
@@ -145,5 +143,5 @@ class UserByUsername(Resource):
         return {"message": "deleted"}, 200
 
 api.add_resource(UserList, "/users")
-api.add_resource(User, "/users/<int:user_id>")
+api.add_resource(UserDetail, "/users/<int:user_id>")
 api.add_resource(UserByUsername, "/users/<username>")

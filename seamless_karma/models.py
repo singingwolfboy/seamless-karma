@@ -1,7 +1,10 @@
-from seamless_karma import db
+from flask.ext.sqlalchemy import SQLAlchemy
 import sqlalchemy as sa
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from decimal import Decimal
+
+
+db = SQLAlchemy()
 
 
 class Organization(db.Model):

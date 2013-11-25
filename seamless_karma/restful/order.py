@@ -1,4 +1,5 @@
-from seamless_karma import app, db, api, models
+from seamless_karma.models import db, User, Order, OrderContribution
+from seamless_karma.extensions import api
 import sqlalchemy as sa
 from flask import request, url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
@@ -51,7 +52,7 @@ class ContributionArgument(reqparse.Argument):
             return int(value)
         except ValueError:
             try:
-                user = models.User.query.filter(models.User.username == value).one()
+                user = User.query.filter(User.username == value).one()
             except sa.orm.exc.NoResultFound:
                 raise ValueError("contributed_by must be a user ID or username; "
                     "{!r} is not a user ID, and no user exists with "
@@ -97,24 +98,24 @@ order_parser.add_argument('ordered_by_id', type=int, required=True)
 class OrderList(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
-    @resource_list(models.Order, mfields)
+    @resource_list(Order, mfields)
     def get(self):
-        return models.Order.query
+        return Order.query
 
     def post(self):
         args = order_parser.parse_args()
-        order = models.Order.create(**args)
+        order = Order.create(**args)
         db.session.add(order)
         db.session.commit()
         location = url_for('order', order_id=order.id)
         return {"message": "created", "id": order.id}, 201, {"Location": location}
 
 
-class Order(Resource):
+class OrderDetail(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
     def get_order_or_abort(self, id):
-        o = models.Order.query.get(id)
+        o = Order.query.get(id)
         if not o:
             abort(404, message="Order {} does not exist".format(id))
         return o
@@ -131,7 +132,7 @@ class Order(Resource):
             if attr in args:
                 setattr(u, attr, args[attr])
         if args.contributions:
-            o.contributions = [models.OrderContribution(user_id=c.user_id, amount=amount, order=o)
+            o.contributions = [OrderContribution(user_id=c.user_id, amount=amount, order=o)
                 for user_id, amount in args.contributions.items()]
         db.session.add(o)
         db.session.commit()
@@ -147,16 +148,14 @@ class Order(Resource):
 class UserOrderList(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
-    @resource_list(models.Order, mfields)
+    @resource_list(Order, mfields)
     def get(self, user_id):
-        return (models.Order.query
-            .filter(models.Order.user_id == user_id)
-        )
+        return Order.query.filter(Order.user_id == user_id)
 
     def post(self, user_id):
         args = user_order_parser.parse_args()
         args['ordered_by_id'] = user_id
-        order = models.Order.create(**args)
+        order = Order.create(**args)
         db.session.add(order)
         db.session.commit()
         location = url_for('order', order_id=order.id)
@@ -166,28 +165,28 @@ class UserOrderList(Resource):
 class OrganizationOrderList(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
-    @resource_list(models.Order, mfields)
+    @resource_list(Order, mfields)
     def get(self, org_id):
-        return (models.Order.query
-            .join(models.User)
-            .filter(models.User.organization_id == org_id)
+        return (Order.query
+            .join(User)
+            .filter(User.organization_id == org_id)
         )
 
 
 class OrganizationOrderListForDate(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
-    @resource_list(models.Order, mfields)
+    @resource_list(Order, mfields)
     def get(self, org_id, for_date):
-        return (models.Order.query
-            .join(models.User)
-            .filter(models.User.organization_id == org_id)
-            .filter(models.Order.for_date == for_date)
+        return (Order.query
+            .join(User)
+            .filter(User.organization_id == org_id)
+            .filter(Order.for_date == for_date)
         )
 
 
 api.add_resource(OrderList, "/orders")
-api.add_resource(Order, "/orders/<int:order_id>")
+api.add_resource(OrderDetail, "/orders/<int:order_id>")
 api.add_resource(UserOrderList, "/users/<int:user_id>/orders")
 api.add_resource(OrganizationOrderList, "/organizations/<int:org_id>/orders")
 api.add_resource(OrganizationOrderListForDate,

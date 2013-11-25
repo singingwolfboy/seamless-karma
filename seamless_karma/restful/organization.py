@@ -1,4 +1,5 @@
-from seamless_karma import app, db, api, models
+from seamless_karma.models import db, Organization
+from seamless_karma.extensions import api
 import sqlalchemy as sa
 from flask import request, url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
@@ -21,24 +22,24 @@ parser.add_argument('default_allocation', type=Decimal)
 class OrganizationList(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
-    @resource_list(models.Organization, mfields)
+    @resource_list(Organization, mfields)
     def get(self):
-        return models.Organization.query
+        return Organization.query
 
     def post(self):
         args = parser.parse_args()
-        org = models.Organization(**args)
+        org = Organization(**args)
         db.session.add(org)
         db.session.commit()
         location = url_for('organization', org_id=org.id)
         return {"message": "created", "id": "org.id"}, 201, {"Location": location}
 
 
-class Organization(Resource):
+class OrganizationDetail(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
     def get_org_or_abort(self, id):
-        o = models.Organization.query.get(id)
+        o = Organization.query.get(id)
         if not o:
             abort(404, message="Organization {} does not exist".format(id))
         return o
@@ -70,8 +71,8 @@ class OrganizationByName(Resource):
 
     def get_org_or_abort(self, name):
         try:
-            return (models.Organization.query
-                    .filter(models.Organization.name == name)
+            return (Organization.query
+                    .filter(Organization.name == name)
                     .one()
             )
         except sa.orm.exc.NoResultFound:
@@ -100,5 +101,5 @@ class OrganizationByName(Resource):
 
 
 api.add_resource(OrganizationList, "/organizations")
-api.add_resource(Organization, "/organizations/<int:org_id>")
+api.add_resource(OrganizationDetail, "/organizations/<int:org_id>")
 api.add_resource(OrganizationByName, "/organizations/<name>")

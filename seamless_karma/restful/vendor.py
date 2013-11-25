@@ -1,4 +1,5 @@
-from seamless_karma import app, db, api, models
+from seamless_karma.models import db, Vendor
+from seamless_karma.extensions import api
 from flask import request, url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
 from decimal import Decimal
@@ -22,24 +23,24 @@ parser.add_argument('longitude', type=Decimal)
 class VendorList(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
-    @resource_list(models.Vendor, mfields)
+    @resource_list(Vendor, mfields)
     def get(self):
-        return models.Vendor.query
+        return Vendor.query
 
     def post(self):
         args = parser.parse_args()
-        vendor = models.Vendor(**args)
+        vendor = Vendor(**args)
         db.session.add(vendor)
         db.session.commit()
         location = url_for('vendor', vendor_id=vendor.id)
         return {"message": "created", "id": vendor.id}, 201, {"Location": location}
 
 
-class Vendor(Resource):
+class VendorDetail(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
     def get_vendor_or_abort(self, id):
-        vendor = models.Vendor.query.get(id)
+        vendor = Vendor.query.get(id)
         if not vendor:
             abort(404, message="Vendor {} does not exist".format(id))
         return vendor
@@ -67,4 +68,4 @@ class Vendor(Resource):
 
 
 api.add_resource(VendorList, "/vendors")
-api.add_resource(Vendor, "/vendors/<int:vendor_id>")
+api.add_resource(VendorDetail, "/vendors/<int:vendor_id>")

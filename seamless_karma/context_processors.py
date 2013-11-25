@@ -1,9 +1,7 @@
-from seamless_karma import app
-from flask import url_for, config, Markup
+from flask import url_for, config, Markup, current_app
 
-@app.context_processor
 def requirejs():
-    if app.debug:
+    if current_app.debug:
         main = url_for('static', filename="scripts/config")
         src = url_for('static', filename="bower_components/requirejs/require.js")
         script = '<script data-main="{main}" src="{src}"></script>'.format(
