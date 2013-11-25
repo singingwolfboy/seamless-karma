@@ -4,7 +4,7 @@ import sqlalchemy as sa
 from flask import request, url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
 from decimal import Decimal
-from .utils import TwoDecimalPlaceField
+from .utils import TwoDecimalPlaceField, make_optional
 from .decorators import handle_sqlalchemy_errors, resource_list
 
 mfields = {
@@ -22,7 +22,7 @@ parser.add_argument('default_allocation', type=Decimal)
 class OrganizationList(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
-    @resource_list(Organization, mfields)
+    @resource_list(Organization, mfields, parser=make_optional(parser))
     def get(self):
         return Organization.query
 
