@@ -3,6 +3,7 @@ Flask-Heroku
 Flask-Cache
 Flask-SQLAlchemy
 Flask-Script
+raven[flask]
 iso8601
 psycopg2
 gunicorn

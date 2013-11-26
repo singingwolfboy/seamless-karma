@@ -1,6 +1,6 @@
 from flask import Flask, render_template
 from .models import db
-from .extensions import heroku, cache, api
+from .extensions import sentry, heroku, cache, api
 from .converters import ISODateConverter
 from .context_processors import requirejs
 
@@ -21,6 +21,7 @@ def create_app(config=object()):
 
 def register_extensions(app):
     heroku.init_app(app)
+    sentry.init_app(app)
     db.init_app(app)
     api.init_app(app)
     cache.init_app(app)
