@@ -26,3 +26,7 @@ needless complexity in using the application.
 In layman's terms: anyone can modify their Seamless Karma at any time (or anyone
 else's Seamless Karma). This game only works if everyone plays by the rules.
 Please be nice!
+
+## Deploying
+This project can be deployed to Heroku using the [multi
+buildpack](https://github.com/ddollar/heroku-buildpack-multi).
