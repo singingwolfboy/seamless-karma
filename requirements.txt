@@ -9,4 +9,4 @@ psycopg2
 gunicorn
 six
 
--e git+https://github.com/singingwolfboy/flask-restful.git@1079b0bf91#egg=flask_restful
+git+https://github.com/singingwolfboy/flask-restful.git@1079b0bf91#egg=flask_restful
