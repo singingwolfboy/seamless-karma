@@ -1,10 +1,10 @@
 from seamless_karma.models import db, User, Organization
 from seamless_karma.extensions import api
 import sqlalchemy as sa
-from flask import request, url_for
+from flask import url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
 from decimal import Decimal
-from .utils import TwoDecimalPlaceField, string_or_int_type, make_optional
+from .utils import TwoDecimalPlaceField, make_optional
 from .decorators import handle_sqlalchemy_errors, resource_list
 
 
@@ -26,12 +26,13 @@ mfields = {
 parser = reqparse.RequestParser()
 parser.add_argument('seamless_id', type=int)
 parser.add_argument('username', required=True)
-parser.add_argument('organization') # one of org or org_id is required
+parser.add_argument('organization')  # one of org or org_id is required
 parser.add_argument('organization_id', type=int)
 parser.add_argument('first_name', required=True)
 parser.add_argument('last_name', required=True)
 parser.add_argument('allocation', type=Decimal,
     help="Seamless allocation of user, as a decimal string")
+
 
 class UserList(Resource):
     method_decorators = [handle_sqlalchemy_errors]
@@ -119,7 +120,7 @@ class UserByUsername(Resource):
         try:
             return User.query.filter(User.username == username).one()
         except sa.orm.exc.NoResultFound:
-            abort(404, message="User {} does not exist".format(username))
+            abort(404, message="User with username {} does not exist".format(username))
 
     @marshal_with(mfields)
     def get(self, username):

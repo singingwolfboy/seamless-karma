@@ -1,9 +1,9 @@
 from seamless_karma.models import db, Vendor
 from seamless_karma.extensions import api
-from flask import request, url_for
+from flask import url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
 from decimal import Decimal
-from .utils import TwoDecimalPlaceField
+from .utils import make_optional
 from .decorators import handle_sqlalchemy_errors, resource_list
 
 mfields = {
@@ -20,10 +20,11 @@ parser.add_argument('seamless_id', type=int)
 parser.add_argument('latitude', type=Decimal)
 parser.add_argument('longitude', type=Decimal)
 
+
 class VendorList(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
-    @resource_list(Vendor, mfields)
+    @resource_list(Vendor, mfields, parser=make_optional(parser))
     def get(self):
         return Vendor.query
 

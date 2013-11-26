@@ -1,7 +1,7 @@
 from seamless_karma.models import db, Organization
 from seamless_karma.extensions import api
 import sqlalchemy as sa
-from flask import request, url_for
+from flask import url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
 from decimal import Decimal
 from .utils import TwoDecimalPlaceField, make_optional
@@ -18,6 +18,7 @@ parser = reqparse.RequestParser()
 parser.add_argument('seamless_id', type=int)
 parser.add_argument('name')
 parser.add_argument('default_allocation', type=Decimal)
+
 
 class OrganizationList(Resource):
     method_decorators = [handle_sqlalchemy_errors]
@@ -71,12 +72,9 @@ class OrganizationByName(Resource):
 
     def get_org_or_abort(self, name):
         try:
-            return (Organization.query
-                    .filter(Organization.name == name)
-                    .one()
-            )
+            return Organization.query.filter(Organization.name == name).one()
         except sa.orm.exc.NoResultFound:
-            abort(404, message="Organization {} does not exist".format(username))
+            abort(404, message="Organization {} does not exist".format(name))
 
     @marshal_with(mfields)
     def get(self, name):
