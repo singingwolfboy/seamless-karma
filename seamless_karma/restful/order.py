@@ -1,7 +1,7 @@
 from seamless_karma.models import db, User, Order, OrderContribution
 from seamless_karma.extensions import api
 import sqlalchemy as sa
-from flask import request, url_for
+from flask import url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
 from decimal import Decimal, InvalidOperation
 from datetime import datetime, date
