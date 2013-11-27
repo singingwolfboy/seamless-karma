@@ -20,7 +20,7 @@ def make_shell_context():
 
 def compile_config_js():
     if not os.path.isfile("seamless_karma/static/scripts/config.js"):
-        sp.call(["env;", "./node_modules/coffee-script/bin/coffee", "--compile",
+        sp.call(["./node_modules/coffee-script/bin/coffee", "--compile",
             "seamless_karma/static/scripts/config.coffee"])
 
 class ServerWithPrerun(Server):
@@ -43,10 +43,13 @@ def collectstatic(dry_run, input):
     This intentionally has the same call signature as Django's collectstatic
     command, so that Heroku's Python buildpack will call it automatically.
     """
-    sp.call(["env;", "../../node_modules/bower/bin/bower", "install"],
+    print("cwd =", os.getcwd())
+    sp.call(["ls", "../../node_modules"], cwd=os.getcwd() + "/seamless_karma/static")
+    sp.call(["pwd"], cwd=os.getcwd() + "/seamless_karma/static")
+    sp.call(["../../node_modules/bower/bin/bower", "install"],
         cwd=os.getcwd() + "/seamless_karma/static")
     compile_config_js()
-    sp.call(["env;", "./node_modules/requirejs/bin/r.js", "-o", "build.js"])
+    sp.call(["./node_modules/requirejs/bin/r.js", "-o", "build.js"])
     if dry_run:
         return
     fname = "seamless_karma/static/scripts/optimized{hash}.js"
