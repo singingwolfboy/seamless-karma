@@ -7,7 +7,54 @@ import subprocess as sp
 import os.path
 import hashlib
 
+
 manager = Manager(create_app)
+
+
+@manager.shell
+def make_shell_context():
+    return dict(db=db, sa=sa,
+        User=User, Organization=Organization, Order=Order,
+        OrderContribution=OrderContribution)
+
+def compile_config_js():
+    if not os.path.isfile("seamless_karma/static/scripts/config.js"):
+        sp.call(["./node_modules/coffee-script/bin/coffee", "--compile",
+            "seamless_karma/static/scripts/config.coffee"])
+
+class ServerWithPrerun(Server):
+    def handle(self, *args, **kwargs):
+        self.prerun()
+        super(ServerWithPrerun, self).handle(*args, **kwargs)
+
+    def prerun(self):
+        compile_config_js()
+
+manager.add_command("runserver", ServerWithPrerun())
+
+
+@manager.option('--dry-run', action='store_true', default=False)
+@manager.option('--noinput', dest='input', action='store_false', default=True)
+def collectstatic(dry_run, input):
+    """
+    Collect static assets for deployment.
+
+    This intentionally has the same call signature as Django's collectstatic
+    command, so that Heroku's Python buildpack will call it automatically.
+    """
+    sp.call(["../../node_modules/bower/bin/bower", "install"],
+        cwd="seamless_karma/static")
+    compile_config_js()
+    sp.call(["./node_modules/requirejs/bin/r.js", "-o", "build.js"])
+    fname = "seamless_karma/static/scripts/optimized{hash}.js"
+    with open(fname.format(hash="")) as f:
+        content = f.read()
+    hash = hashlib.md5(content).hexdigest()[0:8]
+    with open(fname.format(hash="."+hash), "w") as f:
+        f.write(content)
+
+
+### DATABASE MANAGEMENT ###
 dbmanager = Manager(usage="Perform database operations")
 
 
@@ -43,42 +90,6 @@ def sql():
 
 
 manager.add_command("db", dbmanager)
-
-
-@manager.shell
-def make_shell_context():
-    return dict(db=db, sa=sa,
-        User=User, Organization=Organization, Order=Order,
-        OrderContribution=OrderContribution)
-
-def compile_config_js():
-    if not os.path.isfile("seamless_karma/static/scripts/config.js"):
-        sp.call(["./node_modules/coffee-script/bin/coffee", "--compile",
-            "seamless_karma/static/scripts/config.coffee"])
-
-class ServerWithPrerun(Server):
-    def handle(self, *args, **kwargs):
-        self.prerun()
-        super(ServerWithPrerun, self).handle(*args, **kwargs)
-
-    def prerun(self):
-        compile_config_js()
-
-manager.add_command("runserver", ServerWithPrerun())
-
-@manager.command
-def build():
-    "Build optimized JS for deployment"
-    sp.call(["../../node_modules/bower/bin/bower", "install"],
-        cwd="seamless_karma/static")
-    compile_config_js()
-    sp.call(["./node_modules/requirejs/bin/r.js", "-o", "build.js"])
-    fname = "seamless_karma/static/scripts/optimized{hash}.js"
-    with open(fname.format(hash="")) as f:
-        content = f.read()
-    hash = hashlib.md5(content).hexdigest()[0:8]
-    with open(fname.format(hash="."+hash), "w") as f:
-        f.write(content)
 
 
 if __name__ == "__main__":
