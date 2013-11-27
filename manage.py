@@ -46,6 +46,8 @@ def collectstatic(dry_run, input):
         cwd="seamless_karma/static")
     compile_config_js()
     sp.call(["./node_modules/requirejs/bin/r.js", "-o", "build.js"])
+    if dry_run:
+        return
     fname = "seamless_karma/static/scripts/optimized{hash}.js"
     with open(fname.format(hash="")) as f:
         content = f.read()
