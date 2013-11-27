@@ -15,5 +15,8 @@
     "coffee-script": "*",
     "requirejs": "*"
   },
+  "scripts": {
+    "postinstall": "cd seamless_karma/static/ && ../../node_modules/bower/bin/bower install"
+  },
   "license": "MIT"
 }
