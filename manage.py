@@ -4,6 +4,7 @@ from seamless_karma.models import db, User, Organization, Order, OrderContributi
 from flask.ext.script import Manager, Server, prompt_bool
 import sqlalchemy as sa
 import subprocess as sp
+import os
 import os.path
 import hashlib
 
@@ -43,7 +44,7 @@ def collectstatic(dry_run, input):
     command, so that Heroku's Python buildpack will call it automatically.
     """
     sp.call(["env;", "../../node_modules/bower/bin/bower", "install"],
-        cwd="seamless_karma/static")
+        cwd=os.getcwd() + "/seamless_karma/static")
     compile_config_js()
     sp.call(["env;", "./node_modules/requirejs/bin/r.js", "-o", "build.js"])
     if dry_run:
