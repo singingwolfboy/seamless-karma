@@ -5,6 +5,6 @@
         "requirejs": "*"
     },
     "scripts": {
-        "prepublish": "source /app/.heroku/python/bin/activate && python manage.py build"
+        "prepublish": ". /app/.heroku/python/bin/activate && python manage.py build"
     }
 }
