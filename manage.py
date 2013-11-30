@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 from seamless_karma import create_app
 from seamless_karma.models import db, User, Organization, Order, OrderContribution
+from seamless_karma.extensions import cache
 from flask.ext.script import Manager, Server, prompt_bool
 import sqlalchemy as sa
 import subprocess as sp
@@ -56,9 +57,10 @@ def collectstatic(dry_run, input):
     fname = "seamless_karma/static/scripts/optimized{hash}.js"
     with open(fname.format(hash="")) as f:
         content = f.read()
-    hash = hashlib.md5(content).hexdigest()[0:8]
-    with open(fname.format(hash="."+hash), "w") as f:
+    hash = "." + hashlib.md5(content).hexdigest()[0:8]
+    with open(fname.format(hash=hash), "w") as f:
         f.write(content)
+    cache.set("optimized_js_hash", hash)
 
 
 ### DATABASE MANAGEMENT ###
