@@ -43,12 +43,15 @@ def collectstatic(dry_run, input):
     This intentionally has the same call signature as Django's collectstatic
     command, so that Heroku's Python buildpack will call it automatically.
     """
+    if dry_run:
+        # do nothing -- this is just the Python buildpack checking if we
+        # support collectstatic
+        return
+
     static_dir = os.path.join(os.getcwd(), "seamless_karma", "static")
     sp.call(["../../node_modules/bower/bin/bower", "install"], cwd=static_dir)
     compile_config_js()
     sp.call(["./node_modules/requirejs/bin/r.js", "-o", "build.js"])
-    if dry_run:
-        return
     fname = "seamless_karma/static/scripts/optimized{hash}.js"
     with open(fname.format(hash="")) as f:
         content = f.read()
