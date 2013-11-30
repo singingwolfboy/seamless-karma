@@ -44,6 +44,7 @@ def collectstatic(dry_run, input):
     command, so that Heroku's Python buildpack will call it automatically.
     """
     print("cwd =", os.getcwd())
+    sp.call(["ls", "/usr/bin"])
     sp.call(["ls", "../../node_modules"], cwd=os.getcwd() + "/seamless_karma/static")
     sp.call(["pwd"], cwd=os.getcwd() + "/seamless_karma/static")
     sp.call(["../../node_modules/bower/bin/bower", "install"],
