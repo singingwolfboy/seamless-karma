@@ -1,6 +1,7 @@
 Flask
 Flask-Heroku
 Flask-Cache
+redis
 Flask-SQLAlchemy
 Flask-Script
 raven[flask]
@@ -8,5 +9,6 @@ iso8601
 psycopg2
 gunicorn
 six
+path.py
 
 git+https://github.com/singingwolfboy/flask-restful.git@1079b0bf91#egg=flask_restful

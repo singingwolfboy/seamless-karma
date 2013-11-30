@@ -5,11 +5,12 @@ from flask.ext.script import Manager, Server, prompt_bool
 import sqlalchemy as sa
 import subprocess as sp
 import os
-import os.path
+from path import path
 import hashlib
 
 
 manager = Manager(create_app)
+manager.add_option('-c', '--config', required=False, default='prod')
 
 
 @manager.shell
@@ -19,7 +20,7 @@ def make_shell_context():
         OrderContribution=OrderContribution)
 
 def compile_config_js():
-    if not os.path.isfile("seamless_karma/static/scripts/config.js"):
+    if not path("seamless_karma/static/scripts/config.js").isfile():
         sp.call(["./node_modules/coffee-script/bin/coffee", "--compile",
             "seamless_karma/static/scripts/config.coffee"])
 
@@ -48,7 +49,7 @@ def collectstatic(dry_run, input):
         # support collectstatic
         return
 
-    static_dir = os.path.join(os.getcwd(), "seamless_karma", "static")
+    static_dir = path.getcwd() / "seamless_karma" / "static"
     sp.call(["../../node_modules/bower/bin/bower", "install"], cwd=static_dir)
     compile_config_js()
     sp.call(["./node_modules/requirejs/bin/r.js", "-o", "build.js"])
@@ -101,7 +102,7 @@ manager.add_command("db", dbmanager)
 ### HEROKU SETUP ###
 # the "node" binary lives in /app/bin, so make sure that's on the PATH
 def add_local_bin_to_path():
-    local_bin = os.path.join(os.getcwd(), "bin")
+    local_bin = path.getcwd() / "bin"
     paths = os.environ['PATH'].split(":")
     if not local_bin in paths:
         paths.insert(0, local_bin)
