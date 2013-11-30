@@ -40,5 +40,5 @@ front-end, you can just use the [Python
 buildpack](https://github.com/heroku/heroku-buildpack-python):
 
 ```bash
-$ heroku config:set BUILDPACK_UR:=git://github.com/heroku/heroku-buildpack-python.git
+$ heroku config:set BUILDPACK_URL=git://github.com/heroku/heroku-buildpack-python.git
 ```
