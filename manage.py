@@ -8,6 +8,7 @@ import subprocess as sp
 import os
 from path import path
 import hashlib
+from dealer.git import git
 
 
 manager = Manager(create_app)
@@ -60,7 +61,7 @@ def collectstatic(dry_run, input):
     hash = "." + hashlib.md5(content).hexdigest()[0:8]
     with open(fname.format(hash=hash), "w") as f:
         f.write(content)
-    cache.set("optimized_js_hash", hash)
+    cache.set("{rev}|optimized_js_hash".format(git.revision), hash)
 
 
 ### DATABASE MANAGEMENT ###
