@@ -29,4 +29,16 @@ Please be nice!
 
 ## Deploying
 This project can be deployed to Heroku using the [multi
-buildpack](https://github.com/ddollar/heroku-buildpack-multi).
+buildpack](https://github.com/ddollar/heroku-buildpack-multi):
+
+```bash
+$ heroku config:set BUILDPACK_URL=git://github.com/ddollar/heroku-buildpack-multi.git
+```
+
+If you want to speed up the deployment, and you don't care about the web
+front-end, you can just use the [Python
+buildpack](https://github.com/heroku/heroku-buildpack-python):
+
+```bash
+$ heroku config:set BUILDPACK_UR:=git://github.com/heroku/heroku-buildpack-python.git
+```

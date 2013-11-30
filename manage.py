@@ -45,6 +45,12 @@ def collectstatic(dry_run, input):
     This intentionally has the same call signature as Django's collectstatic
     command, so that Heroku's Python buildpack will call it automatically.
     """
+    # if we were deployed without node.js support, do nothing
+    try:
+        sp.check_call(["which", "node"])
+    except sp.CalledProcessError:
+        raise RuntimeError("cannot collectstatic; node is not installed")
+
     if dry_run:
         # do nothing -- this is just the Python buildpack checking if we
         # support collectstatic
