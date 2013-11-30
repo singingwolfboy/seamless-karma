@@ -43,12 +43,8 @@ def collectstatic(dry_run, input):
     This intentionally has the same call signature as Django's collectstatic
     command, so that Heroku's Python buildpack will call it automatically.
     """
-    print("cwd =", os.getcwd())
-    sp.call(["ls", "/usr/bin"])
-    sp.call(["ls", "../../node_modules"], cwd=os.getcwd() + "/seamless_karma/static")
-    sp.call(["pwd"], cwd=os.getcwd() + "/seamless_karma/static")
-    sp.call(["../../node_modules/bower/bin/bower", "install"],
-        cwd=os.getcwd() + "/seamless_karma/static")
+    static_dir = os.path.join(os.getcwd(), "seamless_karma", "static")
+    sp.call(["../../node_modules/bower/bin/bower", "install"], cwd=static_dir)
     compile_config_js()
     sp.call(["./node_modules/requirejs/bin/r.js", "-o", "build.js"])
     if dry_run:
@@ -99,8 +95,8 @@ def sql():
 manager.add_command("db", dbmanager)
 
 
-# Heroku setup: the "node" binary lives in /app/bin, so make sure that's
-# on the PATH.
+### HEROKU SETUP ###
+# the "node" binary lives in /app/bin, so make sure that's on the PATH
 def add_local_bin_to_path():
     local_bin = os.path.join(os.getcwd(), "bin")
     paths = os.environ['PATH'].split(":")
