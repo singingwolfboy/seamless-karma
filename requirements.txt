@@ -1,4 +1,5 @@
 Flask
+Flask-Heroku
 Flask-Cache
 redis
 Flask-SQLAlchemy
@@ -11,4 +12,3 @@ six
 path.py
 
 git+https://github.com/singingwolfboy/flask-restful.git@1079b0bf91#egg=flask_restful
-git+https://github.com/singingwolfboy/flask-heroku.git@v0.1.9#egg=flask_heroku
