@@ -99,5 +99,16 @@ def sql():
 manager.add_command("db", dbmanager)
 
 
+# Heroku setup: the "node" binary lives in /app/bin, so make sure that's
+# on the PATH.
+def add_local_bin_to_path():
+    local_bin = os.path.join(os.getcwd(), "bin")
+    paths = os.environ['PATH'].split(":")
+    if not local_bin in paths:
+        paths.insert(0, local_bin)
+        os.environ['PATH'] = ":".join(paths)
+
+
 if __name__ == "__main__":
+    add_local_bin_to_path()
     manager.run()
