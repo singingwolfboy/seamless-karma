@@ -1,4 +1,6 @@
 *.pyc
+*.egg
+*.egg-info
 venv
 .DS_Store
 bower_components/
