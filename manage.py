@@ -8,16 +8,11 @@ import subprocess as sp
 import os
 from path import path
 import hashlib
+import logging
 
 
 manager = Manager(create_app)
 manager.add_option('-c', '--config', required=False, default='prod')
-
-
-# ensure cache is configured
-cache.config = cache.config or {}
-cache.config['CACHE_TYPE'] = "redis"
-cache.config['CACHE_REDIS_URL'] = os.environ.get("REDISCLOUD_URL")
 
 
 @manager.shell
@@ -72,8 +67,12 @@ def collectstatic(dry_run, input):
     hash = "." + hashlib.md5(content).hexdigest()[0:8]
     with open(fname.format(hash=hash), "w") as f:
         f.write(content)
-    # save hash to cache
-    cache.set("optimized_js_hash", hash)
+    # save hash to cache: this violates http://12factor.net/build-release-run,
+    # and may fail
+    try:
+        cache.set("optimized_js_hash", hash)
+    except Exception as err:
+        logging.warn("Failure to write to cache", err)
 
 
 ### DATABASE MANAGEMENT ###
