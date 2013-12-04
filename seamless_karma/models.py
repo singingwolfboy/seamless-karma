@@ -9,7 +9,7 @@ db = SQLAlchemy()
 
 class Organization(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    seamless_id = db.Column(db.Integer)
+    seamless_id = db.Column(db.Integer, unique=True)
     name = db.Column(db.String(256), unique=True, nullable=False)
     default_allocation = db.Column(db.Numeric(scale=2))
 
@@ -19,7 +19,7 @@ class Organization(db.Model):
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    seamless_id = db.Column(db.Integer)
+    seamless_id = db.Column(db.Integer, unique=True)
     username = db.Column(db.String(256), unique=True, nullable=False)
     first_name = db.Column(db.String(256), nullable=False)
     last_name = db.Column(db.String(256), nullable=False)
@@ -107,14 +107,14 @@ class User(db.Model):
 
 class Vendor(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    seamless_id = db.Column(db.Integer)
+    seamless_id = db.Column(db.Integer, unique=True)
     name = db.Column(db.String(256), nullable=False)
     latitude = db.Column(db.Numeric)
     longitude = db.Column(db.Numeric)
 
 class Order(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    seamless_id = db.Column(db.Integer)
+    seamless_id = db.Column(db.Integer, unique=True)
     for_date = db.Column(db.Date, nullable=False)
     placed_at = db.Column(db.DateTime, nullable=False)
 
