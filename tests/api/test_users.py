@@ -29,7 +29,7 @@ def test_existing(client, users):
     assert obj['data'][1]['username'] == users[1].username
 
 
-def test_creatr_no_args(client):
+def test_create_no_args(client):
     response = client.post('/api/users')
     assert response.status_code == 400
     obj = json.loads(response.data)
