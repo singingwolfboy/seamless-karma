@@ -33,7 +33,7 @@ class VendorList(Resource):
         vendor = Vendor(**args)
         db.session.add(vendor)
         db.session.commit()
-        location = url_for('vendor', vendor_id=vendor.id)
+        location = url_for('vendordetail', vendor_id=vendor.id)
         return {"message": "created", "id": vendor.id}, 201, {"Location": location}
 
 

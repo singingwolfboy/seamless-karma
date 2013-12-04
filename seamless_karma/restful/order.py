@@ -107,7 +107,7 @@ class OrderList(Resource):
         order = Order.create(**args)
         db.session.add(order)
         db.session.commit()
-        location = url_for('order', order_id=order.id)
+        location = url_for('orderdetail', order_id=order.id)
         return {"message": "created", "id": order.id}, 201, {"Location": location}
 
 
@@ -158,7 +158,7 @@ class UserOrderList(Resource):
         order = Order.create(**args)
         db.session.add(order)
         db.session.commit()
-        location = url_for('order', order_id=order.id)
+        location = url_for('orderdetail', order_id=order.id)
         return {"message": "created", "id": order.id}, 201, {"Location": location}
 
 

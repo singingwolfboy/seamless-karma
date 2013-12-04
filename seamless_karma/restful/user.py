@@ -78,7 +78,7 @@ class UserList(Resource):
             abort(400, message="allocation is required in values "
                 "(organization has no default allocation set)")
         db.session.commit()
-        location = url_for('user', user_id=user.id)
+        location = url_for('userdetail', user_id=user.id)
         return {"message": "created", "id": user.id}, 201, {"Location": location}
 
 
