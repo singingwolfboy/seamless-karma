@@ -27,7 +27,7 @@ setup(
     description="track and manage your Seamless.com corporate allocations",
     license="MIT",
     install_requires=required,
-    tests_require=['pytest'],
+    tests_require=['pytest', 'factory_boy'],
     cmdclass={'test': PyTest},
     zip_safe=False,
 )
