@@ -16,7 +16,7 @@ mfields = {
 
 parser = reqparse.RequestParser()
 parser.add_argument('seamless_id', type=int)
-parser.add_argument('name')
+parser.add_argument('name', required=True)
 parser.add_argument('default_allocation', type=Decimal)
 
 
