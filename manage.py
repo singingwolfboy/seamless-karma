@@ -113,9 +113,9 @@ manager.add_command("db", dbmanager)
 
 
 ### HEROKU SETUP ###
-# the "node" binary lives in /app/bin, so make sure that's on the PATH
+# the "node" binary lives in /app/vendor/node/bin, so make sure that's on the PATH
 def add_local_bin_to_path():
-    local_bin = path.getcwd() / "bin"
+    local_bin = path.getcwd() / "vendor" / "node" / "bin"
     paths = os.environ['PATH'].split(":")
     if not local_bin in paths:
         paths.insert(0, local_bin)
