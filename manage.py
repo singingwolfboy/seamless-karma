@@ -61,18 +61,17 @@ def collectstatic(dry_run, input):
     sp.call(["../../node_modules/bower/bin/bower", "install"], cwd=static_dir)
     compile_config_js()
     sp.call(["./node_modules/requirejs/bin/r.js", "-o", "build.js"])
-    fname = "seamless_karma/static/scripts/optimized{hash}.js"
-    with open(fname.format(hash="")) as f:
-        content = f.read()
-    hash = "." + hashlib.md5(content).hexdigest()[0:8]
-    with open(fname.format(hash=hash), "w") as f:
-        f.write(content)
-    # save hash to cache: this violates http://12factor.net/build-release-run,
-    # and may fail
-    try:
-        cache.set("optimized_js_hash", hash)
-    except Exception as err:
-        logging.warn("Failure to write to cache", err)
+    # copy optimized.js based on hash of contents
+    optimized_js = static_dir / "scripts" / "optimized.js"
+    text = optimized_js.text()
+    hash = hashlib.md5(text).hexdigest()[0:8]
+    optimized_hash = optimized_js.parent / "optimized.{}.js".format(hash)
+    optimized_hash.write_text(text)
+    # update optimized.latest.js symlink
+    latest_js = optimized_hash.parent / "optimized.latest.js"
+    if latest_js.exists():
+        latest_js.remove()
+    os.symlink(optimized_hash.name, latest_js)
 
 
 ### DATABASE MANAGEMENT ###
