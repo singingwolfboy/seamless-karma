@@ -8,7 +8,7 @@ except ImportError:
     import seamless_karma
 
 import pytest
-from seamless_karma import create_app, models
+from seamless_karma import create_app, models, extensions
 import factory
 from factory.alchemy import SQLAlchemyModelFactory
 from decimal import Decimal
@@ -20,9 +20,9 @@ def app(request):
     app = create_app("test")
     ctx = app.test_request_context()
     ctx.push()
-    models.db.create_all()
+    extensions.db.create_all()
     def fin():
-        models.db.drop_all()
+        extensions.db.drop_all()
         ctx.pop()
     request.addfinalizer(fin)
     return app
@@ -30,7 +30,7 @@ def app(request):
 
 @pytest.fixture
 def db():
-    return models.db
+    return extensions.db
 
 
 @pytest.fixture
@@ -47,7 +47,7 @@ def make_username(user):
 
 
 class Factory(SQLAlchemyModelFactory):
-    FACTORY_SESSION = models.db.session
+    FACTORY_SESSION = extensions.db.session
 
 
 @pytest.fixture
