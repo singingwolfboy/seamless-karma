@@ -46,11 +46,14 @@ def make_username(user):
     return user.first_name[0] + user.last_name
 
 
+class Factory(SQLAlchemyModelFactory):
+    FACTORY_SESSION = models.db.session
+
+
 @pytest.fixture
 def OrganizationFactory():
-    class OrganizationFactory(SQLAlchemyModelFactory):
+    class OrganizationFactory(Factory):
         FACTORY_FOR = models.Organization
-        FACTORY_SESSION = models.db.session
 
         name = 'edX'
         default_allocation = Decimal('11.50')
@@ -60,9 +63,8 @@ def OrganizationFactory():
 
 @pytest.fixture
 def UserFactory(OrganizationFactory):
-    class UserFactory(SQLAlchemyModelFactory):
+    class UserFactory(Factory):
         FACTORY_FOR = models.User
-        FACTORY_SESSION = models.db.session
 
         first_name = factory.Sequence(make_first_name)
         last_name = 'Example'
@@ -70,3 +72,13 @@ def UserFactory(OrganizationFactory):
         organization = factory.SubFactory(OrganizationFactory)
 
     return UserFactory
+
+
+@pytest.fixture
+def VendorFactory():
+    class VendorFactory(Factory):
+        FACTORY_FOR = models.Vendor
+
+        name = factory.Sequence(make_first_name)
+
+    return VendorFactory
