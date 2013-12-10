@@ -8,6 +8,7 @@ db = SQLAlchemy()
 
 
 class Organization(db.Model):
+    __tablename__ = 'organizations'
     id = db.Column(db.Integer, primary_key=True)
     seamless_id = db.Column(db.Integer, unique=True)
     name = db.Column(db.String(256), unique=True, nullable=False)
@@ -18,6 +19,7 @@ class Organization(db.Model):
 
 
 class User(db.Model):
+    __tablename__ = 'users'
     id = db.Column(db.Integer, primary_key=True)
     seamless_id = db.Column(db.Integer, unique=True)
     username = db.Column(db.String(256), unique=True, nullable=False)
@@ -25,7 +27,7 @@ class User(db.Model):
     last_name = db.Column(db.String(256), nullable=False)
     allocation = db.Column(db.Numeric(scale=2), nullable=False)
 
-    organization_id = db.Column(db.Integer, db.ForeignKey('organization.id'),
+    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'),
         nullable=False)
     organization = db.relationship(Organization,
         backref=db.backref('users', lazy="dynamic"))
@@ -106,6 +108,7 @@ class User(db.Model):
         return (cls.allocation - allocated).label('unallocated')
 
 class Vendor(db.Model):
+    __tablename__ = 'vendors'
     id = db.Column(db.Integer, primary_key=True)
     seamless_id = db.Column(db.Integer, unique=True)
     name = db.Column(db.String(256), nullable=False)
@@ -113,21 +116,22 @@ class Vendor(db.Model):
     longitude = db.Column(db.Numeric)
 
 class Order(db.Model):
+    __tablename__ = 'orders'
     id = db.Column(db.Integer, primary_key=True)
     seamless_id = db.Column(db.Integer, unique=True)
     for_date = db.Column(db.Date, nullable=False)
     placed_at = db.Column(db.DateTime, nullable=False)
 
-    vendor_id = db.Column(db.Integer, db.ForeignKey('vendor.id'),
+    vendor_id = db.Column(db.Integer, db.ForeignKey('vendors.id'),
         nullable=False)
     vendor = db.relationship(Vendor,
         backref="orders")
-    ordered_by_id = db.Column(db.Integer, db.ForeignKey('user.id'),
+    ordered_by_id = db.Column(db.Integer, db.ForeignKey('users.id'),
         nullable=False)
     ordered_by = db.relationship(User,
         backref="own_orders")
     contributors = db.relationship(User,
-        secondary="order_contribution",
+        secondary="order_contributions",
         backref="orders")
 
     def __repr__(self):
@@ -203,9 +207,10 @@ class Order(db.Model):
 
 
 class OrderContribution(db.Model):
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'),
+    __tablename__ = 'order_contributions'
+    user_id = db.Column(db.Integer, db.ForeignKey('users.id'),
         primary_key=True)
-    order_id = db.Column(db.Integer, db.ForeignKey('order.id'),
+    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'),
         primary_key=True)
 
     user = db.relationship(User, backref="order_contributions")
