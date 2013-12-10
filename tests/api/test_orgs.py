@@ -24,7 +24,7 @@ def test_existing(client, orgs):
     assert response.status_code == 200
     obj = json.loads(response.data)
     assert obj['count'] == len(orgs)
-    assert obj['data'][0]['default_allocation'] == orgs[0].default_allocation
+    assert obj['data'][0]['default_allocation'] == str(orgs[0].default_allocation)
     assert obj['data'][1]['name'] == orgs[1].name
 
 

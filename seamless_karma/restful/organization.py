@@ -32,7 +32,7 @@ class OrganizationList(Resource):
         org = Organization(**args)
         db.session.add(org)
         db.session.commit()
-        location = url_for('organization', org_id=org.id)
+        location = url_for('organizationdetail', org_id=org.id)
         return {"message": "created", "id": "org.id"}, 201, {"Location": location}
 
 

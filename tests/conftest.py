@@ -20,8 +20,11 @@ def app(request):
     app = create_app("test")
     ctx = app.test_request_context()
     ctx.push()
-    request.addfinalizer(ctx.pop)
     models.db.create_all()
+    def fin():
+        models.db.drop_all()
+        ctx.pop()
+    request.addfinalizer(fin)
     return app
 
 
