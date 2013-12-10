@@ -1,5 +1,5 @@
-from seamless_karma.models import db, Vendor
-from seamless_karma.extensions import api
+from seamless_karma.models import Vendor
+from seamless_karma.extensions import db, api
 from flask import url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
 from decimal import Decimal

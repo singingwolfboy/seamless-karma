@@ -1,6 +1,7 @@
 import json
 import pytest
-from seamless_karma.models import db, User
+from seamless_karma.extensions import db
+from seamless_karma.models import User
 import factory
 from six.moves.urllib.parse import urlparse
 

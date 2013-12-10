@@ -4,6 +4,9 @@ heroku = Heroku()
 from raven.contrib.flask import Sentry
 sentry = Sentry()
 
+from flask.ext.sqlalchemy import SQLAlchemy
+db = SQLAlchemy()
+
 from flask.ext.cache import Cache
 cache = Cache()
 

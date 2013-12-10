@@ -1,6 +1,5 @@
 from flask import Flask, render_template
-from .models import db
-from .extensions import sentry, heroku, cache, api
+from .extensions import sentry, heroku, db, cache, api
 from .converters import ISODateConverter
 from .context_processors import requirejs
 from path import path

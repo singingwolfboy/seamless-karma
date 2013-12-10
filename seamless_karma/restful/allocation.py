@@ -1,5 +1,5 @@
-from seamless_karma.extensions import api
-from seamless_karma.models import db, User, Order
+from seamless_karma.extensions import db, api
+from seamless_karma.models import User, Order
 import sqlalchemy as sa
 import six
 from flask.ext.restful import Resource, abort, fields, marshal_with

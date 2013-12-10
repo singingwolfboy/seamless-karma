@@ -1,5 +1,5 @@
-from seamless_karma.models import db, Organization
-from seamless_karma.extensions import api
+from seamless_karma.models import Organization
+from seamless_karma.extensions import db, api
 import sqlalchemy as sa
 from flask import url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
