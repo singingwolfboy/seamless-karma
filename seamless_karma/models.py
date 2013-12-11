@@ -135,12 +135,16 @@ class Order(db.Model):
         return u"<Order {date}>".format(date=self.for_date.isoformat())
 
     @classmethod
-    def create(cls, for_date, placed_at, ordered_by_id, contributions, seamless_id=None):
+    def create(
+        cls, for_date, placed_at, ordered_by_id, contributions,
+        seamless_id=None, vendor_id=None
+    ):
         order = cls(
             seamless_id=seamless_id,
             for_date=for_date,
             placed_at=placed_at,
             ordered_by_id=ordered_by_id,
+            vendor_id=vendor_id,
         )
         for contributor_id, amount in contributions.items():
             oc = OrderContribution(
