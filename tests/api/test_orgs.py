@@ -2,7 +2,7 @@ import json
 import pytest
 from seamless_karma.extensions import db
 from seamless_karma.models import User
-import factory
+from factories import OrganizationFactory
 from six.moves.urllib.parse import urlparse
 
 def test_empty(client):
@@ -13,7 +13,7 @@ def test_empty(client):
 
 
 @pytest.fixture
-def orgs(app, OrganizationFactory):
+def orgs(app):
     org1 = OrganizationFactory.create()
     org2 = OrganizationFactory.create(name="Coursera")
     db.session.commit()

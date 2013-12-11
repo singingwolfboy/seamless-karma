@@ -2,6 +2,7 @@ import json
 import pytest
 from seamless_karma.extensions import db
 from seamless_karma.models import User
+from factories import VendorFactory
 import factory
 from six.moves.urllib.parse import urlparse
 
@@ -13,7 +14,7 @@ def test_empty(client):
 
 
 @pytest.fixture
-def vendors(app, VendorFactory):
+def vendors(app):
     v1 = VendorFactory.create()
     v2 = VendorFactory.create()
     db.session.commit()

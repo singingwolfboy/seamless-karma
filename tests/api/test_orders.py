@@ -2,6 +2,7 @@ import json
 import pytest
 from seamless_karma.extensions import db
 from seamless_karma.models import User
+from factories import UserFactory, OrderFactory, OrganizationFactory
 import factory
 from six.moves.urllib.parse import urlparse
 
@@ -13,7 +14,7 @@ def test_empty(client):
 
 
 @pytest.fixture
-def users(app, OrderFactory, OrganizationFactory, UserFactory):
+def users(app):
     org = OrganizationFactory.create()
     u1 = UserFactory.create(organization=org)
     u2 = UserFactory.create(organization=org)
@@ -37,7 +38,7 @@ def test_create_no_args(client):
     assert "Missing required parameter" in obj['message']
 
 
-def test_create(client, OrganizationFactory):
+def test_create(client):
     org = OrganizationFactory.create()
     db.session.commit()
     response = client.post('/api/users', data={
