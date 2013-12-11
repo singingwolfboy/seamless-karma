@@ -12,6 +12,7 @@ from seamless_karma import create_app, models, extensions
 import factory
 from factory.alchemy import SQLAlchemyModelFactory
 from decimal import Decimal
+from datetime import datetime, date
 from string import ascii_uppercase
 
 
@@ -82,3 +83,29 @@ def VendorFactory():
         name = factory.Sequence(make_first_name)
 
     return VendorFactory
+
+
+@pytest.fixture
+def OrderFactory(UserFactory, VendorFactory): #, OrderContributionFactory):
+    class OrderFactory(Factory):
+        FACTORY_FOR = models.Order
+
+        for_date = date.today()
+        placed_at = datetime.utcnow()
+        vendor = factory.SubFactory(VendorFactory)
+        ordered_by = factory.SubFactory(UserFactory)
+        #contributors = factory.List(factory.SubFactory(OrderContributionFactory))
+
+    return OrderFactory
+
+
+@pytest.fixture
+def OrderContributionFactory(UserFactory, OrderFactory):
+    class OrderContributionFactory(Factory):
+        FACTORY_FOR = models.OrderContribution
+
+        user = factory.SubFactory(UserFactory)
+        order = factory.SubFactory(OrderFactory)
+        amount = Decimal('8.52')
+
+    return OrderContributionFactory
