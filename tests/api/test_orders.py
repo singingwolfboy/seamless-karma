@@ -2,7 +2,7 @@ import json
 import pytest
 from seamless_karma.extensions import db
 from seamless_karma.models import User
-from factories import UserFactory, OrderFactory, OrganizationFactory
+from factories import UserFactory, OrderFactory, OrganizationFactory, VendorFactory
 import factory
 from six.moves.urllib.parse import urlparse
 
@@ -13,39 +13,25 @@ def test_empty(client):
     assert obj['count'] == 0
 
 
-@pytest.fixture
-def users(app):
-    org = OrganizationFactory.create()
-    u1 = UserFactory.create(organization=org)
-    u2 = UserFactory.create(organization=org)
-    db.session.commit()
-    return [u1, u2]
-
-
-def test_existing(client, users):
-    response = client.get('/api/users')
-    assert response.status_code == 200
-    obj = json.loads(response.data)
-    assert obj['count'] == len(users)
-    assert obj['data'][0]['first_name'] == users[0].first_name
-    assert obj['data'][1]['username'] == users[1].username
-
-
 def test_create_no_args(client):
-    response = client.post('/api/users')
+    response = client.post('/api/orders')
     assert response.status_code == 400
     obj = json.loads(response.data)
-    assert "Missing required parameter" in obj['message']
+    err = ("at least one pair of contributed_by and contributed_amount"
+        " values is required")
+    assert err == obj['message']
 
 
 def test_create(client):
     org = OrganizationFactory.create()
+    user = UserFactory.create(organization=org)
+    vendor = VendorFactory.create()
     db.session.commit()
-    response = client.post('/api/users', data={
-        "username": "AAgarwal",
-        "first_name": "Anant",
-        "last_name": "Agarwal",
-        "organization_id": org.id,
+    response = client.post('/api/orders', data={
+        "contributed_by": user.id,
+        "contributed_amount": "8.50",
+        "ordered_by_id": user.id,
+        "vendor_id": vendor.id,
     })
     assert response.status_code == 201
     assert "Location" in response.headers
@@ -56,4 +42,4 @@ def test_create(client):
     resp2 = client.get(path)
     assert resp2.status_code == 200
     created = json.loads(resp2.data)
-    assert created["username"] == "AAgarwal"
+    assert created["contributions"]["amount"] == "8.50"
