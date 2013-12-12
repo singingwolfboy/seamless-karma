@@ -42,4 +42,4 @@ def test_create(client):
     resp2 = client.get(path)
     assert resp2.status_code == 200
     created = json.loads(resp2.data)
-    assert created["contributions"]["amount"] == "8.50"
+    assert created["contributions"][0]["amount"] == "8.50"

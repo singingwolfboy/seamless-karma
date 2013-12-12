@@ -16,7 +16,7 @@ class OrderContributionField(fields.Raw):
     def format(self, value):
         return [{
             "user_id": oc.user_id,
-            "total": six.text_type(oc.amount.quantize(TWOPLACES)),
+            "amount": six.text_type(oc.amount.quantize(TWOPLACES)),
         } for oc in value]
 
 
