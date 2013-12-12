@@ -1,16 +1,13 @@
 import factory
+from factory import fuzzy
 from factory.alchemy import SQLAlchemyModelFactory
 from seamless_karma.extensions import db
 from seamless_karma.models import (User, Organization, Vendor,
     Order, OrderContribution)
 from decimal import Decimal
-from datetime import date, datetime
+from datetime import date, time, datetime, timedelta
 from string import ascii_uppercase
 
-
-def make_first_name(n):
-    return "{initial}name".format(
-        initial=ascii_uppercase[n-1])
 
 def make_username(user):
     return user.first_name[0] + user.last_name
@@ -23,15 +20,15 @@ class Factory(SQLAlchemyModelFactory):
 class OrganizationFactory(Factory):
     FACTORY_FOR = Organization
 
-    name = 'edX'
-    default_allocation = Decimal('11.50')
+    name = fuzzy.FuzzyText()
+    default_allocation = fuzzy.FuzzyDecimal(low=0, high=25, precision=2)
 
 
 class UserFactory(Factory):
     FACTORY_FOR = User
 
-    first_name = factory.Sequence(make_first_name)
-    last_name = 'Example'
+    first_name = fuzzy.FuzzyText()
+    last_name = fuzzy.FuzzyText()
     username = factory.LazyAttribute(make_username)
     organization = factory.SubFactory(OrganizationFactory)
 
@@ -39,17 +36,24 @@ class UserFactory(Factory):
 class VendorFactory(Factory):
     FACTORY_FOR = Vendor
 
-    name = factory.Sequence(make_first_name)
+    name = fuzzy.FuzzyText()
+
+
+week_ago = date.today() - timedelta(days=7)
+week_ahead = date.today() + timedelta(days=7)
 
 
 class OrderFactory(Factory):
     FACTORY_FOR = Order
 
-    for_date = date.today()
-    placed_at = datetime.utcnow()
+    for_date = fuzzy.FuzzyDate(week_ago, week_ahead)
+    placed_at = fuzzy.FuzzyNaiveDateTime(datetime.combine(week_ago, time.min))
     vendor = factory.SubFactory(VendorFactory)
     ordered_by = factory.SubFactory(UserFactory)
-    #contributors = factory.List(factory.SubFactory(OrderContributionFactory))
+    # contributors = factory.List([#factory.SubFactory(OrderContributionFactory))
+    #     factory.RelatedFactory("factories.OrderContributionFactory", "order")
+    # ])
+
 
 
 class OrderContributionFactory(Factory):
@@ -57,5 +61,5 @@ class OrderContributionFactory(Factory):
 
     user = factory.SubFactory(UserFactory)
     order = factory.SubFactory(OrderFactory)
-    amount = Decimal('8.52')
+    amount = fuzzy.FuzzyDecimal(low=0, high=15, precision=2)
 

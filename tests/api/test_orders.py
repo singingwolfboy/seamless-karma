@@ -13,6 +13,23 @@ def test_empty(client):
     assert obj['count'] == 0
 
 
+@pytest.fixture
+def orders(app):
+    o1 = OrderFactory.create()
+    o2 = OrderFactory.create()
+    db.session.commit()
+    return [o1, o2]
+
+
+def test_existing(client, orders):
+    response = client.get('/api/orders')
+    assert response.status_code == 200
+    obj = json.loads(response.data)
+    assert obj['count'] == len(orders)
+    assert obj['data'][0]['ordered_by'] == orders[0].ordered_by_id
+    # still need to assert on contributions...
+
+
 def test_create_no_args(client):
     response = client.post('/api/orders')
     assert response.status_code == 400
@@ -23,8 +40,7 @@ def test_create_no_args(client):
 
 
 def test_create(client):
-    org = OrganizationFactory.create()
-    user = UserFactory.create(organization=org)
+    user = UserFactory.create()
     vendor = VendorFactory.create()
     db.session.commit()
     response = client.post('/api/orders', data={
