@@ -27,7 +27,8 @@ def test_existing(client, orders):
     obj = json.loads(response.data)
     assert obj['count'] == len(orders)
     assert obj['data'][0]['ordered_by'] == orders[0].ordered_by_id
-    # still need to assert on contributions...
+    assert obj['data'][1]['contributions'][0]['amount'] == \
+           str(orders[1].contributions[0].amount)
 
 
 def test_create_no_args(client):

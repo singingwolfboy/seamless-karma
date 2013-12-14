@@ -50,10 +50,16 @@ class OrderFactory(Factory):
     placed_at = fuzzy.FuzzyNaiveDateTime(datetime.combine(week_ago, time.min))
     vendor = factory.SubFactory(VendorFactory)
     ordered_by = factory.SubFactory(UserFactory)
-    # contributors = factory.List([#factory.SubFactory(OrderContributionFactory))
-    #     factory.RelatedFactory("factories.OrderContributionFactory", "order")
-    # ])
 
+    @factory.post_generation
+    def contributions(self, create, extracted, **kwargs):
+        amount = fuzzy.FuzzyDecimal(low=2, high=15).fuzz()
+        oc = OrderContributionFactory(
+            order=self,
+            user=self.ordered_by,
+            amount=amount,
+        )
+        return [oc]
 
 
 class OrderContributionFactory(Factory):
