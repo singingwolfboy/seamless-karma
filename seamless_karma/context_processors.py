@@ -1,4 +1,4 @@
-from flask import url_for, config, Markup, current_app
+from flask import url_for, Markup, current_app
 from path import path
 
 
