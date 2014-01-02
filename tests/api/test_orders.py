@@ -3,8 +3,8 @@ import pytest
 from seamless_karma.extensions import db
 from seamless_karma.models import User
 from factories import UserFactory, OrderFactory, OrganizationFactory, VendorFactory
-import factory
 from six.moves.urllib.parse import urlparse
+
 
 def test_empty(client):
     response = client.get('/api/orders')
@@ -27,8 +27,8 @@ def test_existing(client, orders):
     obj = json.loads(response.data)
     assert obj['count'] == len(orders)
     assert obj['data'][0]['ordered_by'] == orders[0].ordered_by_id
-    assert obj['data'][1]['contributions'][0]['amount'] == \
-           str(orders[1].contributions[0].amount)
+    assert (obj['data'][1]['contributions'][0]['amount'] ==
+            str(orders[1].contributions[0].amount))
 
 
 def test_create_no_args(client):
@@ -36,7 +36,7 @@ def test_create_no_args(client):
     assert response.status_code == 400
     obj = json.loads(response.data)
     err = ("at least one pair of contributed_by and contributed_amount"
-        " values is required")
+           " values is required")
     assert err == obj['message']
 
 

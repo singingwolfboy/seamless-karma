@@ -24,10 +24,12 @@ class User(db.Model):
     last_name = db.Column(db.String(256), nullable=False)
     allocation = db.Column(db.Numeric(scale=2), nullable=False)
 
-    organization_id = db.Column(db.Integer, db.ForeignKey('organizations.id'),
-        nullable=False)
-    organization = db.relationship(Organization,
-        backref=db.backref('users', lazy="dynamic"))
+    organization_id = db.Column(
+        db.Integer, db.ForeignKey('organizations.id'), nullable=False
+    )
+    organization = db.relationship(
+        Organization, backref=db.backref('users', lazy="dynamic")
+    )
 
     def __init__(self, username, first_name, last_name, organization, allocation=None, seamless_id=None):
         self.username = username
@@ -84,6 +86,20 @@ class User(db.Model):
             .filter(Order.ordered_by_id == cls.id)
         )
         return (given.as_scalar() - received.as_scalar()).label('karma')
+
+    @hybrid_method
+    def participated_on(self, date):
+        return any(o for o in self.orders if o.for_date == date)
+
+    @participated_on.expression
+    def participated_on(cls, date):
+        return (
+            db.session.query(Order)
+            .join(OrderContribution)
+            .filter(OrderContribution.user_id == cls.id)
+            .filter(Order.for_date == date)
+            .exists()
+        )
 
     @hybrid_method
     def unallocated(self, date):

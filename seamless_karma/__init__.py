@@ -12,7 +12,7 @@ def create_app(config=None):
         for f in config_dir.files():
             configs[f.namebase] = config_dir / f
         # support aliasing: "dev" => "config/dev.py"
-        config = configs.get(config, config) 
+        config = configs.get(config, config)
         app.config.from_pyfile(config)
 
     register_url_converters(app)

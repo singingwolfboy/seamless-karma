@@ -2,6 +2,7 @@
 from seamless_karma import create_app
 from seamless_karma.models import db, User, Organization, Order, OrderContribution
 from seamless_karma.extensions import cache
+from flask import current_app
 from flask.ext.script import Manager, Server, prompt_bool
 import sqlalchemy as sa
 import subprocess as sp
@@ -17,7 +18,7 @@ manager.add_option('-c', '--config', required=False, default='prod')
 
 @manager.shell
 def make_shell_context():
-    return dict(db=db, sa=sa,
+    return dict(db=db, sa=sa, app=current_app,
         User=User, Organization=Organization, Order=Order,
         OrderContribution=OrderContribution)
 

@@ -57,6 +57,7 @@ def datetime_type(value, name):
     except:
         raise ValueError(u"{} string must be an ISO-8601 formatted datetime")
 
+
 ## utility functions ##
 
 def make_optional(parser):
@@ -100,3 +101,12 @@ def update_url_query(*args, **kwargs):
     # bring it on back
     query = urlencode(qlist)
     return urlunsplit((scheme, netloc, path, query, fragment))
+
+
+def bool_from_str(s):
+    if not isinstance(s, six.string_types):
+        return bool(s)
+    if s.lower() in ("0", "f", "false"):
+        return False
+    else:
+        return True

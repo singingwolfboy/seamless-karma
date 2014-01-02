@@ -1,31 +1,40 @@
 from seamless_karma.extensions import db, api
-from seamless_karma.models import User, Order
+from seamless_karma.models import User
 import sqlalchemy as sa
+from flask import request
 import six
-from flask.ext.restful import Resource, abort, fields, marshal_with
-from datetime import datetime, date
+from flask.ext.restful import Resource
 from decimal import Decimal
-from .utils import TwoDecimalPlaceField, date_type
 from .decorators import handle_sqlalchemy_errors
+from .utils import bool_from_str
 
 
 class OrganizationUnallocatedForDate(Resource):
     method_decorators = [handle_sqlalchemy_errors]
 
     def get(self, org_id, for_date):
-        total = (db.session.query(
+        # are we including nonparticipants? (users in this org who have not yet
+        # participated in an order for this date)
+        nonparticipants = bool_from_str(request.args.get('nonparticipants', False))
+        total_query = (db.session.query(
                 sa.func.coalesce(
                     sa.func.sum(User.unallocated(for_date)),
                     Decimal('0.00')
                 )
             )
             .filter(User.organization_id == org_id)
-            .scalar()
         )
+        if not nonparticipants:
+            total_query = total_query.filter(User.participated_on(for_date))
+        total = total_query.scalar()
+
         main_query = (db.session.query(User, User.unallocated(for_date), User.karma)
             .filter(User.organization_id == org_id)
             .order_by(sa.desc(User.unallocated(for_date)), User.karma)
         )
+        if not nonparticipants:
+            main_query = main_query.filter(User.participated_on(for_date))
+
         output = {
             "total_unallocated": six.text_type(total),
             "data": [],
@@ -41,5 +50,7 @@ class OrganizationUnallocatedForDate(Resource):
         return output
 
 
-api.add_resource(OrganizationUnallocatedForDate,
-    "/organizations/<int:org_id>/orders/<date:for_date>/unallocated")
+api.add_resource(
+    OrganizationUnallocatedForDate,
+    "/organizations/<int:org_id>/orders/<date:for_date>/unallocated"
+)
