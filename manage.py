@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from seamless_karma import create_app
 from seamless_karma.models import db, User, Organization, Order, OrderContribution
-from seamless_karma.extensions import cache
 from flask import current_app
 from flask.ext.script import Manager, Server, prompt_bool
 import sqlalchemy as sa
@@ -9,7 +8,6 @@ import subprocess as sp
 import os
 from path import path
 import hashlib
-import logging
 
 
 manager = Manager(create_app)
@@ -18,14 +16,18 @@ manager.add_option('-c', '--config', required=False, default='prod')
 
 @manager.shell
 def make_shell_context():
-    return dict(db=db, sa=sa, app=current_app,
+    return dict(
+        db=db, sa=sa, app=current_app,
         User=User, Organization=Organization, Order=Order,
-        OrderContribution=OrderContribution)
+        OrderContribution=OrderContribution
+    )
+
 
 def compile_config_js():
     if not path("seamless_karma/static/scripts/config.js").isfile():
         sp.call(["./node_modules/coffee-script/bin/coffee", "--compile",
             "seamless_karma/static/scripts/config.coffee"])
+
 
 class ServerWithPrerun(Server):
     def handle(self, *args, **kwargs):
@@ -49,7 +51,7 @@ def collectstatic(dry_run, input):
     """
     # if we were deployed without node.js support, raise error
     try:
-        sp.check_call(["which", "node"])
+        sp.check_call(["which", "node"], stdout=sp.PIPE)
     except sp.CalledProcessError:
         raise RuntimeError("cannot collectstatic; node is not installed")
 
