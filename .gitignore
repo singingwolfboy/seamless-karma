@@ -6,4 +6,5 @@ venv
 bower_components/
 node_modules/
 seamless_karma/static/scripts/*.js
+seamless_karma/static/scripts/*.map
 .coverage

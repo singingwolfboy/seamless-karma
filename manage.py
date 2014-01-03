@@ -69,12 +69,29 @@ def collectstatic(dry_run, input):
     text = optimized_js.text()
     hash = hashlib.md5(text).hexdigest()[0:8]
     optimized_hash = optimized_js.parent / "optimized.{}.js".format(hash)
+    print("Copying {src} to {dest}".format(
+        src=optimized_js.name, dest=optimized_hash.name))
     optimized_hash.write_text(text)
+    # if we have a sourcemap, copy it too
+    sourcemap = optimized_js + ".map"
+    if sourcemap.exists():
+        sourcemap_hash = optimized_hash + ".map"
+        print("Copying {src} to {dest}".format(
+            src=sourcemap.name, dest=sourcemap_hash.name))
+        sourcemap.copy(sourcemap_hash)
     # update optimized.latest.js symlink
     latest_js = optimized_hash.parent / "optimized.latest.js"
     if latest_js.exists():
         latest_js.remove()
+    print("Updating {name} symlink".format(name=latest_js.name))
     os.symlink(optimized_hash.name, latest_js)
+    # and latest sourcemap symlink
+    latest_sourcemap = latest_js + ".map"
+    if latest_sourcemap.exists():
+        latest_sourcemap.remove()
+    if sourcemap.exists():
+        print("Updating {name} symlink".format(name=latest_sourcemap.name))
+        os.symlink(sourcemap_hash.name, latest_sourcemap)
 
 
 ### DATABASE MANAGEMENT ###

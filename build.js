@@ -5,4 +5,7 @@
   out: "seamless_karma/static/scripts/optimized.js",
   name: "../bower_components/almond/almond",
   include: "config",
+  optimize: "uglify2",
+  generateSourceMaps: true,
+  preserveLicenseComments: false
 })
