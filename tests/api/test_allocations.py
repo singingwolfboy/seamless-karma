@@ -2,9 +2,7 @@ import json
 import pytest
 from decimal import Decimal
 from seamless_karma.extensions import db
-from seamless_karma.models import User
-from factories import UserFactory, OrderFactory, OrganizationFactory, VendorFactory
-from six.moves.urllib.parse import urlparse
+from factories import UserFactory, OrderFactory, OrganizationFactory
 
 
 @pytest.fixture
@@ -42,8 +40,10 @@ def test_empty_with_users(client, org, users):
 
 
 def test_empty_with_users_display_nonparticipants(client, org, users):
-    url = ("/api/organizations/{org_id}/orders/2014-01-01/unallocated"
-           "?nonparticipants=true".format(org_id=org.id))
+    url = (
+        "/api/organizations/{org_id}/orders/2014-01-01/unallocated"
+        "?nonparticipants=true".format(org_id=org.id)
+    )
     response = client.get(url)
     assert response.status_code == 200
     obj = json.loads(response.data)
@@ -62,9 +62,11 @@ def test_one_order(client, users):
     )
     db.session.add(order)
     db.session.commit()
-    url = ("/api/organizations/{org_id}/orders/{date}/unallocated"
-           "?nonparticipants=true".format(
-               org_id=users[0].organization.id, date=order.for_date)
+    url = (
+        "/api/organizations/{org_id}/orders/{date}/unallocated"
+        "?nonparticipants=true".format(
+            org_id=users[0].organization.id, date=order.for_date
+        )
     )
     response = client.get(url)
     assert response.status_code == 200

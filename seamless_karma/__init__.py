@@ -4,6 +4,7 @@ from .converters import ISODateConverter
 from .context_processors import requirejs
 from path import path
 
+
 def create_app(config=None):
     app = Flask(__name__)
     if config is not None:
