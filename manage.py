@@ -69,6 +69,11 @@ def collectstatic(dry_run, input):
     text = optimized_js.text()
     hash = hashlib.md5(text).hexdigest()[0:8]
     optimized_hash = optimized_js.parent / "optimized.{}.js".format(hash)
+    # if we have a sourcemap comment, rewrite it
+    text = text.replace(
+        "//# sourceMappingURL=optimized.js.map",
+        "//# sourceMappingURL=optimized.{}.js.map".format(hash)
+    )
     print("Copying {src} to {dest}".format(
         src=optimized_js.name, dest=optimized_hash.name))
     optimized_hash.write_text(text)
