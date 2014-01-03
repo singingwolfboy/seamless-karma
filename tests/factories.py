@@ -64,7 +64,7 @@ class OrderFactory(Factory):
                 user=user,
                 amount=amount,
             ))
-        #return ret
+        return ret
 
 
 class OrderContributionFactory(Factory):

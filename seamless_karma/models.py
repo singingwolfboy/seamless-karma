@@ -1,5 +1,6 @@
 from seamless_karma.extensions import db
 import sqlalchemy as sa
+from sqlalchemy.orm import backref
 from sqlalchemy.sql import type_api, sqltypes, type_coerce
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from decimal import Decimal
@@ -10,7 +11,7 @@ class Currency(type_api.TypeDecorator):
     A SQLAlchemy type that accurately saves Decimal values to a fixed number
     of places (2 by default). This is similar to SQLAlchemy's builtin
     Numeric type, but differs in its fallback implementation: Numeric falls
-    back on saving as strings, while Currency falls back on saving as integers,
+    back on saving as floats, while Currency falls back on saving as integers,
     making it more suitable for database computation (such as SUM, AVG, and
     other SQL functions).
     """
@@ -284,8 +285,10 @@ class OrderContribution(db.Model):
 
     user = db.relationship(User, backref="order_contributions")
     order = db.relationship(
-        Order, backref="contributions",
-        # cascade="all, delete-orphan", single_parent=True
+        Order, backref=backref(
+            "contributions",
+            cascade='all, delete-orphan', single_parent=True
+        )
     )
     amount = db.Column(Currency(scale=2), nullable=False)
 
