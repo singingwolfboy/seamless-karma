@@ -1,7 +1,46 @@
 from seamless_karma.extensions import db
 import sqlalchemy as sa
+from sqlalchemy.sql import type_api, sqltypes, type_coerce
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 from decimal import Decimal
+
+
+class Currency(type_api.TypeDecorator):
+    """
+    A SQLAlchemy type that accurately saves Decimal values to a fixed number
+    of places (2 by default). This is similar to SQLAlchemy's builtin
+    Numeric type, but differs in its fallback implementation: Numeric falls
+    back on saving as strings, while Currency falls back on saving as integers,
+    making it more suitable for database computation (such as SUM, AVG, and
+    other SQL functions).
+    """
+    impl = sqltypes.Integer
+
+    def __init__(self, precision=None, scale=2, *args, **kwargs):
+        self.precision = precision
+        self.scale = scale
+        self.quantize = Decimal("10") ** -self.scale
+        super(Currency, self).__init__(*args, **kwargs)
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        if dialect.supports_native_decimal:
+            return float(value)
+        else:
+            # store as an integer
+            return value.quantize(self.quantize)._int
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        d = Decimal(value)
+        if dialect.supports_native_decimal:
+            return d.quantize(self.quantize)
+        else:
+            # rescale our stored integer
+            d._exp = -1 * self.scale
+            return d
 
 
 class Organization(db.Model):
@@ -9,7 +48,7 @@ class Organization(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     seamless_id = db.Column(db.Integer, unique=True)
     name = db.Column(db.String(256), unique=True, nullable=False)
-    default_allocation = db.Column(db.Numeric(scale=2))
+    default_allocation = db.Column(Currency(scale=2))
 
     def __repr__(self):
         return u"<Organization {!r}>".format(self.name)
@@ -22,7 +61,7 @@ class User(db.Model):
     username = db.Column(db.String(256), unique=True, nullable=False)
     first_name = db.Column(db.String(256), nullable=False)
     last_name = db.Column(db.String(256), nullable=False)
-    allocation = db.Column(db.Numeric(scale=2), nullable=False)
+    allocation = db.Column(Currency(scale=2), nullable=False)
 
     organization_id = db.Column(
         db.Integer, db.ForeignKey('organizations.id'), nullable=False
@@ -31,13 +70,16 @@ class User(db.Model):
         Organization, backref=db.backref('users', lazy="dynamic")
     )
 
-    def __init__(self, username, first_name, last_name, organization, allocation=None, seamless_id=None):
-        self.username = username
-        self.first_name = first_name
-        self.last_name = last_name
-        self.organization = organization
-        self.seamless_id = seamless_id
-        self.allocation = allocation or organization.default_allocation
+    @classmethod
+    def create(cls, username, first_name, last_name, organization, allocation=None, seamless_id=None):
+        return cls(
+            username=username,
+            first_name=first_name,
+            last_name=last_name,
+            organization=organization,
+            seamless_id=seamless_id,
+            allocation=allocation or organization.default_allocation
+        )
 
     def __repr__(self):
         return u'<User "{first} {last}">'.format(
@@ -85,7 +127,10 @@ class User(db.Model):
             .filter(OrderContribution.user_id != cls.id)
             .filter(Order.ordered_by_id == cls.id)
         )
-        return (given.as_scalar() - received.as_scalar()).label('karma')
+        return type_coerce(
+            (given.as_scalar() - received.as_scalar()).label('karma'),
+            Currency
+        )
 
     @hybrid_method
     def participated_on(self, date):
@@ -118,7 +163,11 @@ class User(db.Model):
             .filter(Order.for_date == date)
             .filter(OrderContribution.user_id == cls.id)
         )
-        return (cls.allocation - allocated).label('unallocated')
+        return type_coerce(
+            (cls.allocation - allocated).label('unallocated'),
+            Currency
+        )
+
 
 class Vendor(db.Model):
     __tablename__ = 'vendors'
@@ -128,6 +177,7 @@ class Vendor(db.Model):
     latitude = db.Column(db.Numeric)
     longitude = db.Column(db.Numeric)
 
+
 class Order(db.Model):
     __tablename__ = 'orders'
     id = db.Column(db.Integer, primary_key=True)
@@ -135,17 +185,17 @@ class Order(db.Model):
     for_date = db.Column(db.Date, nullable=False)
     placed_at = db.Column(db.DateTime, nullable=False)
 
-    vendor_id = db.Column(db.Integer, db.ForeignKey('vendors.id'),
-        nullable=False)
-    vendor = db.relationship(Vendor,
-        backref="orders")
-    ordered_by_id = db.Column(db.Integer, db.ForeignKey('users.id'),
-        nullable=False)
-    ordered_by = db.relationship(User,
-        backref="own_orders")
-    contributors = db.relationship(User,
-        secondary="order_contributions",
-        backref="orders")
+    vendor_id = db.Column(
+        db.Integer, db.ForeignKey('vendors.id'), nullable=False
+    )
+    vendor = db.relationship(Vendor, backref="orders")
+    ordered_by_id = db.Column(
+        db.Integer, db.ForeignKey('users.id'), nullable=False
+    )
+    ordered_by = db.relationship(User, backref="own_orders")
+    contributors = db.relationship(
+        User, secondary="order_contributions", backref="orders"
+    )
 
     def __repr__(self):
         return u"<Order {date}>".format(date=self.for_date.isoformat())
@@ -163,7 +213,7 @@ class Order(db.Model):
             vendor_id=vendor_id,
         )
         for contributor_id, amount in contributions.items():
-            oc = OrderContribution(
+            OrderContribution(
                 user_id=contributor_id,
                 amount=amount,
                 order=order,
@@ -225,15 +275,19 @@ class Order(db.Model):
 
 class OrderContribution(db.Model):
     __tablename__ = 'order_contributions'
-    user_id = db.Column(db.Integer, db.ForeignKey('users.id'),
-        primary_key=True)
-    order_id = db.Column(db.Integer, db.ForeignKey('orders.id'),
-        primary_key=True)
+    user_id = db.Column(
+        db.Integer, db.ForeignKey('users.id'), primary_key=True
+    )
+    order_id = db.Column(
+        db.Integer, db.ForeignKey('orders.id'), primary_key=True
+    )
 
     user = db.relationship(User, backref="order_contributions")
-    order = db.relationship(Order, backref="contributions",
-        cascade="all, delete, delete-orphan", single_parent=True)
-    amount = db.Column(db.Numeric(scale=2), nullable=False)
+    order = db.relationship(
+        Order, backref="contributions",
+        # cascade="all, delete-orphan", single_parent=True
+    )
+    amount = db.Column(Currency(scale=2), nullable=False)
 
     def __repr__(self):
         return u"<OrderContribution {}>".format(self.amount)
@@ -252,5 +306,7 @@ class OrderContribution(db.Model):
 
     @is_external.expression
     def is_external(cls):
-        return ((cls.order_id == Order.id) &
-            (cls.user_id == Order.ordered_by_id))
+        return (
+            (cls.order_id == Order.id) and
+            (cls.user_id == Order.ordered_by_id)
+        )

@@ -1,3 +1,4 @@
+import pytest
 try:
     import seamless_karma
 except ImportError:
@@ -6,8 +7,6 @@ except ImportError:
     PROJ_DIR = path(__file__).parent.parent
     sys.path.insert(0, PROJ_DIR)
     import seamless_karma
-
-import pytest
 from seamless_karma import create_app, extensions
 
 
@@ -32,4 +31,3 @@ def db():
 @pytest.fixture
 def client(app):
     return app.test_client()
-

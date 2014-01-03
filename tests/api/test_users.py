@@ -56,3 +56,18 @@ def test_create(client):
     assert resp2.status_code == 200
     created = json.loads(resp2.data)
     assert created["username"] == "AAgarwal"
+
+
+def test_create_duplicate(client):
+    org = OrganizationFactory.create()
+    UserFactory.create(username="AAgarwal", organization=org)
+    db.session.commit()
+    response = client.post('/api/users', data={
+        "username": "AAgarwal",
+        "first_name": "Anant",
+        "last_name": "Agarwal",
+        "organization_id": org.id,
+    })
+    assert response.status_code == 400
+    obj = json.loads(response.data)
+    assert "IntegrityError" in obj["message"]

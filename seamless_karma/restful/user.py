@@ -72,7 +72,7 @@ class UserList(Resource):
         if "organization_id" in args:
             del args["organization_id"]
         args['organization'] = org
-        user = User(**args)
+        user = User.create(**args)
         db.session.add(user)
         if user.allocation is None:
             abort(400, message="allocation is required in values "

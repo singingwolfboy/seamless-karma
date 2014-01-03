@@ -31,6 +31,7 @@ class UserFactory(Factory):
     last_name = fuzzy.FuzzyText()
     username = factory.LazyAttribute(make_username)
     organization = factory.SubFactory(OrganizationFactory)
+    allocation = factory.SelfAttribute('organization.default_allocation')
 
 
 class VendorFactory(Factory):
@@ -53,13 +54,17 @@ class OrderFactory(Factory):
 
     @factory.post_generation
     def contributions(self, create, extracted, **kwargs):
-        amount = fuzzy.FuzzyDecimal(low=2, high=15).fuzz()
-        oc = OrderContributionFactory(
-            order=self,
-            user=self.ordered_by,
-            amount=amount,
-        )
-        return [oc]
+        if not extracted:
+            amount = fuzzy.FuzzyDecimal(low=2, high=15).fuzz()
+            extracted = ((self.ordered_by, amount),)
+        ret = []
+        for user, amount in extracted:
+            ret.append(OrderContributionFactory(
+                order=self,
+                user=user,
+                amount=amount,
+            ))
+        #return ret
 
 
 class OrderContributionFactory(Factory):
@@ -68,4 +73,3 @@ class OrderContributionFactory(Factory):
     user = factory.SubFactory(UserFactory)
     order = factory.SubFactory(OrderFactory)
     amount = fuzzy.FuzzyDecimal(low=0, high=15, precision=2)
-

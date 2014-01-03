@@ -5,7 +5,7 @@ from datetime import datetime
 class ISODateConverter(BaseConverter):
     def to_python(self, value):
         try:
-            datetime.strptime(value, "%Y-%m-%d").date()
+            return datetime.strptime(value, "%Y-%m-%d").date()
         except (ValueError, TypeError):
             raise ValidationError()
 
