@@ -10,14 +10,24 @@ except ImportError:
 from seamless_karma import create_app, extensions
 
 
+def pytest_addoption(parser):
+    parser.addoption("--db", default="sqlite", metavar="BACKEND",
+        help="database backend to use for running tests: sqlite or postgres")
+
+
 @pytest.fixture
-def app(request):
-    app = create_app("test")
+def app(request, pytestconfig):
+    if pytestconfig.option.db == "postgres":
+        app = create_app("test_postgres")
+    else:
+        app = create_app("test")
     ctx = app.test_request_context()
     ctx.push()
     extensions.db.create_all()
     def fin():
-        extensions.db.drop_all()
+        extensions.db.session.remove()
+        extensions.db.drop_all(app=app)
+        extensions.db.get_engine(app).dispose()
         ctx.pop()
     request.addfinalizer(fin)
     return app

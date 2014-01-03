@@ -14,8 +14,11 @@ class Currency(type_api.TypeDecorator):
     back on saving as floats, while Currency falls back on saving as integers,
     making it more suitable for database computation (such as SUM, AVG, and
     other SQL functions).
+
+    This type has only been tested to work properly on postgresql (built-in
+    numeric support) and sqlite (fallback integer support).
     """
-    impl = sqltypes.Integer
+    impl = type_api.TypeEngine
 
     def __init__(self, precision=None, scale=2, *args, **kwargs):
         self.precision = precision
@@ -23,10 +26,19 @@ class Currency(type_api.TypeDecorator):
         self.quantize = Decimal("10") ** -self.scale
         super(Currency, self).__init__(*args, **kwargs)
 
+    def asdecimal(self, dialect):
+        return dialect.supports_native_decimal or sqltypes.Numeric in dialect.colspecs
+
+    def load_dialect_impl(self, dialect):
+        if self.asdecimal(dialect):
+            return dialect.type_descriptor(sqltypes.Numeric)
+        else:
+            return dialect.type_descriptor(sqltypes.Integer)
+
     def process_bind_param(self, value, dialect):
         if value is None:
             return value
-        if dialect.supports_native_decimal:
+        if self.asdecimal(dialect):
             return float(value)
         else:
             # store as an integer
@@ -36,7 +48,7 @@ class Currency(type_api.TypeDecorator):
         if value is None:
             return value
         d = Decimal(value)
-        if dialect.supports_native_decimal:
+        if self.asdecimal(dialect):
             return d.quantize(self.quantize)
         else:
             # rescale our stored integer
