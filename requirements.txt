@@ -1,7 +1,5 @@
 Flask
 Flask-Heroku
-Flask-Cache
-redis
 SQLAlchemy==0.9.0
 Flask-SQLAlchemy
 Flask-Script

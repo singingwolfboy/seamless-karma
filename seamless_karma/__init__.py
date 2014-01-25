@@ -1,5 +1,5 @@
 from flask import Flask, render_template
-from .extensions import sentry, heroku, db, cache, api
+from .extensions import sentry, heroku, db, api
 from .converters import ISODateConverter
 from .context_processors import requirejs
 from path import path
@@ -36,7 +36,6 @@ def register_extensions(app):
 
     db.init_app(app)
     api.init_app(app)
-    cache.init_app(app)
 
 
 def register_url_converters(app):
