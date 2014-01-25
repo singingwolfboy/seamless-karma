@@ -70,4 +70,4 @@ def test_create_duplicate(client):
     })
     assert response.status_code == 400
     obj = json.loads(response.get_data(as_text=True))
-    assert "column username is not unique" == obj["message"]
+    assert "User with username AAgarwal already exists" == obj["message"]

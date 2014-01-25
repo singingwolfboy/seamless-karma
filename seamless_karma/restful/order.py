@@ -96,6 +96,7 @@ order_parser.add_argument('ordered_by_id', type=int, required=True)
 
 
 class OrderList(Resource):
+    model = Order
     method_decorators = [handle_sqlalchemy_errors]
 
     @resource_list(Order, mfields)
@@ -112,6 +113,7 @@ class OrderList(Resource):
 
 
 class OrderDetail(Resource):
+    model = Order
     method_decorators = [handle_sqlalchemy_errors]
 
     def get_order_or_abort(self, id):
@@ -146,6 +148,7 @@ class OrderDetail(Resource):
 
 
 class UserOrderList(Resource):
+    model = Order
     method_decorators = [handle_sqlalchemy_errors]
 
     @resource_list(Order, mfields)
@@ -163,6 +166,7 @@ class UserOrderList(Resource):
 
 
 class OrganizationOrderList(Resource):
+    model = Order
     method_decorators = [handle_sqlalchemy_errors]
 
     @resource_list(Order, mfields)
@@ -174,6 +178,7 @@ class OrganizationOrderList(Resource):
 
 
 class OrganizationOrderListForDate(Resource):
+    model = Order
     method_decorators = [handle_sqlalchemy_errors]
 
     @resource_list(Order, mfields)

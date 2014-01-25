@@ -35,6 +35,7 @@ parser.add_argument('allocation', type=Decimal,
 
 
 class UserList(Resource):
+    model = User
     method_decorators = [handle_sqlalchemy_errors]
 
     @resource_list(User, mfields, parser=make_optional(parser))
@@ -83,7 +84,7 @@ class UserList(Resource):
               ]
             }
         """
-        return User.query
+        return self.model.query
 
     def get_or_create_org(self, args):
         if args.get("organization_id") is not None:
@@ -171,6 +172,7 @@ class UserList(Resource):
 
 
 class UserDetail(Resource):
+    model = User
     method_decorators = [handle_sqlalchemy_errors]
 
     def get_user_or_abort(self, id):
@@ -282,6 +284,7 @@ class UserDetail(Resource):
 
 
 class UserByUsername(Resource):
+    model = User
     method_decorators = [handle_sqlalchemy_errors]
 
     def get_user_or_abort(self, username):

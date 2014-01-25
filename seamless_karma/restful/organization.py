@@ -21,6 +21,7 @@ parser.add_argument('default_allocation', type=Decimal)
 
 
 class OrganizationList(Resource):
+    model = Organization
     method_decorators = [handle_sqlalchemy_errors]
 
     @resource_list(Organization, mfields, parser=make_optional(parser))
@@ -37,6 +38,7 @@ class OrganizationList(Resource):
 
 
 class OrganizationDetail(Resource):
+    model = Organization
     method_decorators = [handle_sqlalchemy_errors]
 
     def get_org_or_abort(self, id):
@@ -68,6 +70,7 @@ class OrganizationDetail(Resource):
 
 
 class OrganizationByName(Resource):
+    model = Organization
     method_decorators = [handle_sqlalchemy_errors]
 
     def get_org_or_abort(self, name):

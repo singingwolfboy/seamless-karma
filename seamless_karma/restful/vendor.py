@@ -22,6 +22,7 @@ parser.add_argument('longitude', type=Decimal)
 
 
 class VendorList(Resource):
+    model = Vendor
     method_decorators = [handle_sqlalchemy_errors]
 
     @resource_list(Vendor, mfields, parser=make_optional(parser))
@@ -38,6 +39,7 @@ class VendorList(Resource):
 
 
 class VendorDetail(Resource):
+    model = Vendor
     method_decorators = [handle_sqlalchemy_errors]
 
     def get_vendor_or_abort(self, id):

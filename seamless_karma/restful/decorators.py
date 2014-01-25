@@ -1,13 +1,41 @@
+import re
 from functools import wraps
-try:
-    from urllib.parse import urlsplit
-except ImportError:
-    from urlparse import urlsplit
+from six.moves.urllib.parse import urlsplit
+from textwrap import dedent
 
 import sqlalchemy as sa
+from seamless_karma.extensions import db
 from flask import request
 from flask.ext.restful import abort, marshal
 from .utils import update_url_query
+
+
+def parse_sqlalchemy_exception(func, exception):
+    """
+    Given a SQLAlchemy exception, return a string to nicely display to the
+    client that explains the error.
+    """
+    model = func.im_class.model
+    message = exception.orig.args[0]
+    if db.engine.name == 'postgresql':
+        UNIQUE_RE = re.compile(dedent(r"""
+            duplicate key value violates unique constraint "[^"]+"
+            DETAIL:  Key \((?P<column>[^)]+)\)=\((?P<value>[^)]+)\) already exists.
+        """).strip())
+    else:  # sqlite
+        UNIQUE_RE = re.compile(dedent(r"""
+            column (?P<column>\w+) is not unique
+        """).strip())
+    match = UNIQUE_RE.search(message)
+    if match:
+        column = match.group("column")
+        try:
+            value = match.group("value")
+        except IndexError:
+            value = request.form.get(column)
+        return "{model} with {column} {value} already exists".format(
+            model=model.__name__, column=column, value=value)
+    return message
 
 
 def handle_sqlalchemy_errors(func):
@@ -16,7 +44,7 @@ def handle_sqlalchemy_errors(func):
         try:
             return func(*args, **kwargs)
         except sa.exc.SQLAlchemyError as e:
-            message = e.orig.args[0]
+            message = parse_sqlalchemy_exception(func, e)
             abort(400, message=message)
     return wrapper
 

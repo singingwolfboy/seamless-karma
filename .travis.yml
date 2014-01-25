@@ -14,6 +14,6 @@ env:
   - DB=sqlite
   - DB=postgres
 script:
-  - python runtests.py --db $DB --cov seamless_karma
+  - python runtests.py --cov seamless_karma . --db $DB
 after_success:
   - coveralls
