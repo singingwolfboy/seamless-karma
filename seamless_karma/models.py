@@ -42,7 +42,7 @@ class Currency(type_api.TypeDecorator):
             return float(value)
         else:
             # store as an integer
-            return value.quantize(self.quantize)._int
+            return int(value * Decimal("10") ** self.scale)
 
     def process_result_value(self, value, dialect):
         if value is None:
@@ -52,8 +52,7 @@ class Currency(type_api.TypeDecorator):
             return d.quantize(self.quantize)
         else:
             # rescale our stored integer
-            d._exp = -1 * self.scale
-            return d
+            return d * Decimal("10") ** -self.scale
 
 
 class Organization(db.Model):
