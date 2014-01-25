@@ -39,6 +39,50 @@ class UserList(Resource):
 
     @resource_list(User, mfields, parser=make_optional(parser))
     def get(self):
+        """
+        Return a list of all users.
+
+        Example response:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+              "count": 3,
+              "data": [
+                {
+                  "id": 1,
+                  "seamless_id": 342534,
+                  "username": "ASample",
+                  "organization_id": 1,
+                  "first_name": "Alice",
+                  "last_name": "Sample",
+                  "allocation": "11.50",
+                  "karma": "21.00"
+                }, {
+                  "id": 2,
+                  "seamless_id": 234013,
+                  "username": "GRipple2",
+                  "organization_id": 1,
+                  "first_name": "Greg",
+                  "last_name": "Ripple",
+                  "allocation": "11.50",
+                  "karma": "0.00"
+                }, {
+                  "id": 4,
+                  "seamless_id": null,
+                  "username": "iDontKnow",
+                  "organization_id": 2,
+                  "first_name": "Samantha",
+                  "last_name": "Smith",
+                  "allocation": "21.20",
+                  "karma": "-3.20"
+                }
+              ]
+            }
+        """
         return User.query
 
     def get_or_create_org(self, args):
@@ -67,6 +111,50 @@ class UserList(Resource):
         abort(400, message="one of `organization` or `organization_id` is required")
 
     def post(self):
+        """
+        Create a new user.
+
+        :form username: *Required* The username of the user on Seamless_
+        :form seamless_id: *Optional* The ID of the user on Seamless_
+        :form first_name: *Required* The user's first name, as saved on Seamless_
+        :form last_name: *Required* The user's last name, as saved on Seamless_
+        :form organization: You must specify what organization this user belongs
+            to on Seamless_. You can do this in one of several ways. If the
+            organization already exists on SeamlessKarma, you may either pass
+            the ID of the organization with the ``organization_id`` form parameter,
+            or the name of the organization with the ``organization`` form
+            parameter. If the organization does not yet exist on SeamlessKarma,
+            you can create it as part of this API call by specifying the name
+            with the ``organization`` form parameter, and also specifying the
+            ``allocation`` form parameter.
+        :form organization_id: Either this or ``organization`` is required, but
+            not both.
+        :form allocation: The user's daily allocation on Seamless_ in dollars.
+            For example, "11.50". If you are also creating an organization with
+            this API call, this form parameter is required; the value will be
+            used not only as this user's daily allocation, but also as the
+            default allocation for the newly-created organization. If you are
+            not creating an organization with this API call, this form parameter
+            is optional; it will default to the default allocation of this
+            user's organization.
+
+        Example response:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 201 CREATED
+            Content-Type: application/json
+            Location: /api/users/7
+
+            {
+              "message": "created",
+              "id" 7
+            }
+
+        :status 201: the user was successfully created
+
+        .. _Seamless: http://www.seamless.com
+        """
         args = parser.parse_args()
         org = self.get_or_create_org(args)
         if "organization_id" in args:
@@ -93,10 +181,73 @@ class UserDetail(Resource):
 
     @marshal_with(mfields)
     def get(self, user_id):
+        """
+        Return information about a specific user, identified by ID.
+
+        Example response:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+              "id": 42,
+              "seamless_id": 742934,
+              "username": "SBrown",
+              "first_name": "Sally",
+              "last_name": "Brown",
+              "allocation": "11.50",
+              "karma": "-27.45",
+              "organization_id": 3
+            }
+
+        :status 200: no error
+        :status 404: there is no user with the given ID
+        """
         return self.get_user_or_abort(user_id)
 
     @marshal_with(mfields)
     def put(self, user_id):
+        """
+        Update information about a specific user, identified by ID.
+
+        Example request:
+
+        .. sourcecode:: http
+
+            PUT /api/users/42 HTTP/1.1
+            Host: seamlesskarma.com
+            Content-Type: application/x-www-form-urlencoded
+            Content-Length: 17
+
+            seamless_id=12345
+
+        Example response:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+              "id": 42,
+              "seamless_id": 12345,
+              "username": "SBrown",
+              "first_name": "Sally",
+              "last_name": "Brown",
+              "allocation": "11.50",
+              "karma": "-27.45",
+              "organization_id": 3
+            }
+
+        :form seamless_id: *Optional* updated Seamless ID
+        :form username: *Optional* updated Seamless username
+        :form first_name: *Optional* updated first name
+        :form last_name: *Optional* updated allocation
+        :status 200: the user was updated
+        :status 404: there is no user with the given ID
+        """
         u = self.get_user_or_abort(user_id)
         args = make_optional(parser).parse_args()
         for attr in ('seamless_id', 'username', 'first_name', 'last_name', 'allocation'):
@@ -107,6 +258,23 @@ class UserDetail(Resource):
         return u
 
     def delete(self, user_id):
+        """
+        Delete a specific user, identified by ID.
+
+        Example response:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+              "message": "deleted"
+            }
+
+        :status 200: the user was deleted
+        :status 404: there is no user with the given ID
+        """
         u = self.get_user_or_abort(user_id)
         db.session.delete(u)
         db.session.commit()
@@ -124,10 +292,18 @@ class UserByUsername(Resource):
 
     @marshal_with(mfields)
     def get(self, username):
+        """
+        Get a user by Seamless username instead of by ID. Otherwise identical
+        to :py:meth:`UserDetail.get`.
+        """
         return self.get_user_or_abort(username)
 
     @marshal_with(mfields)
     def put(self, username):
+        """
+        Update a user by Seamless username instead of by ID. Cannot update
+        Seamless username. Otherwise identical to :py:meth:`UserDetail.put`.
+        """
         u = self.get_user_or_abort(username)
         args = make_optional(parser).parse_args()
         for attr in ('seamless_id', 'first_name', 'last_name', 'allocation'):
@@ -138,6 +314,10 @@ class UserByUsername(Resource):
         return u
 
     def delete(self, username):
+        """
+        Delete a user by Seamless username instead of by ID. Otherwise
+        identical to :py:meth:`UserDetail.delete`.
+        """
         u = self.get_user_or_abort(username)
         db.session.delete(u)
         db.session.commit()
