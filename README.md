@@ -1,4 +1,4 @@
-# Seamless Karma [![Build Status](https://travis-ci.org/singingwolfboy/seamless-karma.png)](https://travis-ci.org/singingwolfboy/seamless-karma)
+# Seamless Karma [![Build Status](https://travis-ci.org/singingwolfboy/seamless-karma.png)](https://travis-ci.org/singingwolfboy/seamless-karma) [![Coverage Status](https://coveralls.io/repos/singingwolfboy/seamless-karma/badge.png)](https://coveralls.io/r/singingwolfboy/seamless-karma)
 
 
 Seamless.com is a website that allows you to order food for delivery or takeout.
