@@ -4,4 +4,4 @@ TESTING = True
 SECRET_KEY = "dummy"
 CACHE_NO_NULL_WARNING = True
 
-SQLALCHEMY_DATABASE_URI = "postgres://localhost"
+SQLALCHEMY_DATABASE_URI = "postgres://localhost/seamless_karma_test"
