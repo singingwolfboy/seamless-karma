@@ -12,4 +12,4 @@ gunicorn
 six
 path.py
 
-git+https://github.com/singingwolfboy/flask-restful.git@1079b0bf91#egg=flask_restful
+git+https://github.com/singingwolfboy/flask-restful.git@64c30ec#egg=flask_restful

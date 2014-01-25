@@ -1,0 +1,8 @@
+-r requirements.txt
+# for running tests
+pytest
+factory_boy>=2.3.0
+
+# for building docs
+sphinx
+sphinxcontrib-httpdomain
