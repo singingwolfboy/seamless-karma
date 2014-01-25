@@ -8,7 +8,6 @@ services:
 before_script:
   - sh -c "if [ '$DB' = 'postgres' ]; then psql -c 'DROP DATABASE IF EXISTS seamless_karma_test;' -U postgres; fi"
   - sh -c "if [ '$DB' = 'postgres' ]; then psql -c 'CREATE DATABASE seamless_karma_test;' -U postgres; fi"
-  - python manage.py -c test db create
 # handle multiple databases in build matrix
 env:
   - DB=sqlite
