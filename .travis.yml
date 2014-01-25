@@ -2,7 +2,8 @@ language: python
 python:
   - "2.7"
   - "3.3"
-install: "pip install -r dev-requirements.txt --use-mirrors"
+install:
+  - pip install -r dev-requirements.txt --use-mirrors
 services:
   - postgresql
 before_script:
@@ -12,4 +13,7 @@ before_script:
 env:
   - DB=sqlite
   - DB=postgres
-script: python runtests.py --db $DB
+script:
+  - python runtests.py --db $DB --cov seamless_karma
+after_success:
+  - coveralls

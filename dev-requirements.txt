@@ -1,7 +1,12 @@
 -r requirements.txt
+
 # for running tests
 pytest
 factory_boy>=2.3.0
+
+# coverage information
+pytest-cov
+python-coveralls
 
 # for building docs
 sphinx
