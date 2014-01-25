@@ -16,7 +16,8 @@ def handle_sqlalchemy_errors(func):
         try:
             return func(*args, **kwargs)
         except sa.exc.SQLAlchemyError as e:
-            abort(400, message=e.message)
+            message = e.orig.args[0]
+            abort(400, message=message)
     return wrapper
 
 
