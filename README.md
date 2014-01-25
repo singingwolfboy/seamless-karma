@@ -1,4 +1,5 @@
-# Seamless Karma
+# Seamless Karma [![Build Status](https://travis-ci.org/singingwolfboy/seamless-karma.png)](https://travis-ci.org/singingwolfboy/seamless-karma)
+
 
 Seamless.com is a website that allows you to order food for delivery or takeout.
 In addition to individual orders, they also have a corporate program where a
@@ -27,7 +28,14 @@ In layman's terms: anyone can modify their Seamless Karma at any time (or anyone
 else's Seamless Karma). This game only works if everyone plays by the rules.
 Please be nice!
 
+## API Documentation
+
+The Seamless Karma API is documented using [Sphinx](http://sphinx-doc.org/). You
+can [view the rendered documentation on Read The
+Docs](http://seamless-karma.readthedocs.org).
+
 ## Deploying
+
 This project can be deployed to Heroku using the [multi
 buildpack](https://github.com/ddollar/heroku-buildpack-multi):
 
