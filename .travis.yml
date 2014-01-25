@@ -3,7 +3,7 @@ python:
   - "2.7"
   - "3.3"
 # command to install dependencies
-install: "pip install -r dev-requirements.txt"
+install: "pip install -r dev-requirements.txt --use-mirrors"
 # command to run tests
 script: python runtests.py --db $DB
 # handle multiple databases in build matrix
