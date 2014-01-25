@@ -2,6 +2,7 @@
 *.egg
 *.egg-info
 venv
+venv3
 .DS_Store
 bower_components/
 node_modules/
