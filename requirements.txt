@@ -3,7 +3,8 @@ Flask-Heroku
 SQLAlchemy==0.9.0
 Flask-SQLAlchemy
 Flask-Script
-raven[flask]
+raven==4.0.3
+blinker==1.3
 iso8601
 psycopg2
 gunicorn
