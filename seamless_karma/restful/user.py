@@ -294,7 +294,7 @@ class UserByUsername(Resource):
     def get(self, username):
         """
         Get a user by Seamless username instead of by ID. Otherwise identical
-        to :py:meth:`UserDetail.get`.
+        to :http:get:`/api/users/(int:user_id)`
         """
         return self.get_user_or_abort(username)
 
@@ -302,7 +302,8 @@ class UserByUsername(Resource):
     def put(self, username):
         """
         Update a user by Seamless username instead of by ID. Cannot update
-        Seamless username. Otherwise identical to :py:meth:`UserDetail.put`.
+        Seamless username. Otherwise identical to
+        :http:put:`/api/users/(int:user_id)`.
         """
         u = self.get_user_or_abort(username)
         args = make_optional(parser).parse_args()
@@ -316,7 +317,7 @@ class UserByUsername(Resource):
     def delete(self, username):
         """
         Delete a user by Seamless username instead of by ID. Otherwise
-        identical to :py:meth:`UserDetail.delete`.
+        identical to :http:delete:`/api/users/(int:user_id)`.
         """
         u = self.get_user_or_abort(username)
         db.session.delete(u)
