@@ -5,4 +5,12 @@ python:
 # command to install dependencies
 install: "pip install -r dev-requirements.txt"
 # command to run tests
-script: python runtests.py
+script: python runtests.py --db $DB
+# handle multiple databases in build matrix
+env:
+  - DB=sqlite
+  - DB=postgres
+services:
+  - postgresql
+before_script:
+  - python manage.py -c test db create
