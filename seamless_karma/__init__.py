@@ -8,7 +8,7 @@ from path import path
 def create_app(config=None):
     app = Flask(__name__)
     if config is not None:
-        config_dir = path(__file__).parent / "config"
+        config_dir = (path(__file__).parent / "config").abspath()
         configs = {}
         for f in config_dir.files():
             configs[f.namebase] = config_dir / f

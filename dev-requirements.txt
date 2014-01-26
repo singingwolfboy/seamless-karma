@@ -5,7 +5,7 @@ pytest
 factory_boy>=2.3.0
 
 # coverage information
-pytest-cov
+coverage
 coveralls
 
 # for building docs
