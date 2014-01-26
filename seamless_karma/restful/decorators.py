@@ -10,12 +10,14 @@ from flask.ext.restful import abort, marshal
 from .utils import update_url_query
 
 
-def parse_sqlalchemy_exception(exception, model):
+def parse_sqlalchemy_exception(exception, model=None):
     """
     Given a SQLAlchemy exception, return a string to nicely display to the
     client that explains the error.
     """
     message = exception.orig.args[0]
+    if not model:
+        return message
     if db.engine.name == 'postgresql':
         UNIQUE_RE = re.compile(dedent(r"""
             duplicate key value violates unique constraint "[^"]+"
@@ -38,7 +40,7 @@ def parse_sqlalchemy_exception(exception, model):
 
 
 def handle_sqlalchemy_errors(cls):
-    assert cls.model, "Must define model on {}".format(cls)
+    model = getattr(cls, "model", None)
 
     def decorator(func):
         @wraps(func)
@@ -46,7 +48,7 @@ def handle_sqlalchemy_errors(cls):
             try:
                 return func(*args, **kwargs)
             except sa.exc.SQLAlchemyError as e:
-                message = parse_sqlalchemy_exception(e, cls.model)
+                message = parse_sqlalchemy_exception(e, model)
                 abort(400, message=message)
         return wrapper
 
