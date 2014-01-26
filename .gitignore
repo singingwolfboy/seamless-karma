@@ -1,6 +1,7 @@
 *.pyc
 *.egg
 *.egg-info
+*.db
 venv
 venv3
 .DS_Store
