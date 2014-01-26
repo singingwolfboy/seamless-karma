@@ -7,8 +7,9 @@ from decimal import Decimal, InvalidOperation
 from datetime import datetime, date
 import copy
 import six
-from .utils import (TwoDecimalPlaceField, TWOPLACES, ISOFormatField,
-    date_type, datetime_type)
+from .utils import (
+    TwoDecimalPlaceField, TWOPLACES, ISOFormatField,
+    date_type, datetime_type, make_optional)
 from .decorators import handle_sqlalchemy_errors, resource_list
 
 
@@ -30,6 +31,7 @@ mfields = {
     "total": TwoDecimalPlaceField(attribute="total_amount"),
     "contributions": OrderContributionField,
 }
+
 
 class ContributionArgument(reqparse.Argument):
     def __init__(self, dest="contributions", required=False, default=None,
@@ -101,9 +103,110 @@ class OrderList(Resource):
 
     @resource_list(Order, mfields)
     def get(self):
+        """
+        Return a list of all orders.
+
+        Example response:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+              "count": 2,
+              "data": [
+                {
+                  "id": 1,
+                  "seamless_id": 23452,
+                  "vendor_id": 7,
+                  "ordered_by": 3,
+                  "for_date": "2014-04-01",
+                  "placed_at": "2014-03-28T14:23:33Z",
+                  "total": "8.49",
+                  "contributions": [
+                    {
+                      "user_id": 3,
+                      "amount": "8.49"
+                    }
+                  ]
+                }, {
+                  "id": 2,
+                  "seamless_id": 342534,
+                  "vendor_id": 3,
+                  "ordered_by": 4,
+                  "for_date": "2014-03-29",
+                  "placed_at": "2014-03-29T08:12:10Z",
+                  "total": "13.30",
+                  "contributions": [
+                    {
+                      "user_id": 4,
+                      "amount": "10.00"
+                    }, {
+                      "user_id": 8,
+                      "amount": "2.00"
+                    }, {
+                      "user_id": 1,
+                      "amount": "1.30"
+                    }
+                  ]
+                }
+              ]
+            }
+        """
         return Order.query
 
     def post(self):
+        """
+        Create a new order.
+
+        :form ordered_by_id: *Required* The ID of the user that placed the
+            order on Seamless_
+        :form seamless_id: *Required* The ID of this order on Seamless_
+        :form vendor_id: *Required* The ID of the vendor (restaunt) that took
+            this order
+        :form for_date: *Optional* The date that the order should be delivered,
+            formatted as an ISO8601 date string (YYYY-MM-DD). Defaults to the
+            current day.
+        :form placed_at: *Optional* The time that the order was placed on
+            Seamless_ as an ISO8601 date-time string (YYYY-MM-DDTHH:MM:SSZ).
+            Defaults to the moment that this request was received by the server.
+        :form contributed_by, contributed_amount: You must supply information about who
+            contributed to this order, and how much they contributed to it.
+            You must pass pairs of ``contributed_by`` and ``contributed_amount``
+            form parameters, where ``contributed_by`` is a user ID and
+            ``contributed_amount`` is a dollar amount for that user. At least
+            one pair is required. Users and amounts will be associated with
+            each other based on position in the list of form parameters.
+
+        Example request:
+
+        .. sourcecode:: http
+
+            POST /api/orders HTTP/1.1
+            Host: seamlesskarma.com
+            Content-Type: application/x-www-form-urlencoded
+            Content-Length: 147
+
+            seamless_id=12345&vendor_id=3&for_date=2013-04-21&contributed_by=4&contributed_amount=8.50&ordered_by_id=4&contributed_by=8&contributed_amount=2.75
+
+        Example response:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 201 CREATED
+            Content-Type: application/json
+            Location: /api/orders/17
+
+            {
+              "message": "created",
+              "id": 17
+            }
+
+        :status 201: the order was successfully created
+
+        .. _Seamless: http://www.seamless.com
+        """
         args = order_parser.parse_args()
         order = Order.create(**args)
         db.session.add(order)
@@ -124,10 +227,101 @@ class OrderDetail(Resource):
 
     @marshal_with(mfields)
     def get(self, order_id):
+        """
+        Return information about a specific order, identified by ID.
+
+        Example response:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+              "id": 2,
+              "seamless_id": 342534,
+              "vendor_id": 3,
+              "ordered_by": 4,
+              "for_date": "2014-03-29",
+              "placed_at": "2014-03-29T08:12:10Z",
+              "total": "13.30",
+              "contributions": [
+                {
+                  "user_id": 4,
+                  "amount": "10.00"
+                }, {
+                  "user_id": 8,
+                  "amount": "2.00"
+                }, {
+                  "user_id": 1,
+                  "amount": "1.30"
+                }
+              ]
+            }
+
+        :status 200: no error
+        :status 404: there is no order with the given ID
+        """
         return self.get_order_or_abort(order_id)
 
     @marshal_with(mfields)
     def put(self, order_id):
+        """
+        Update information about a specific order, identified by ID.
+
+        Example request:
+
+        .. sourcecode:: http
+
+            PUT /api/orders/42 HTTP/1.1
+            Host: seamlesskarma.com
+            Content-Type: application/x-www-form-urlencoded
+            Content-Length: 17
+
+            seamless_id=54321
+
+        Example response:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+              "id": 42,
+              "seamless_id": 54321,
+              "vendor_id": 2,
+              "ordered_by": 14,
+              "for_date": "2014-02-29",
+              "placed_at": "2014-03-29T08:12:10Z",
+              "total": "13.30",
+              "contributions": [
+                {
+                  "user_id": 14,
+                  "amount": "11.10"
+                }, {
+                  "user_id": 3,
+                  "amount": "2.10"
+                }
+              ]
+            }
+
+        :form seamless_id: *Optional* updated Seamless ID
+        :form vendor_id: *Optional* updated vendor ID
+        :form ordered_by_id: *Optional* updated user ID of the user who placed
+            this order
+        :form for_date: *Optional* updated date that the order should be delivered
+        :form placed_at: *Optional* updated datetime when the order was
+            placed
+        :form contributed_by, contributed_amount: *Optional* updated pairs of
+            contribution information. If any pairs are passed, they overwrite
+            existing contribution information, meaning that if you do not include
+            a specific user's contribution in your update, that contribution
+            will be removed from this order.
+        :status 200: the order was updated
+        :status 404: there is no user with the given ID
+        """
+
         o = self.get_order_or_abort(order_id)
         args = make_optional(order_parser).parse_args()
         for attr in ('seamless_id', 'vendor_id', 'ordered_by_id', 'for_date', 'placed_at'):
@@ -141,6 +335,23 @@ class OrderDetail(Resource):
         return o
 
     def delete(self, order_id):
+        """
+        Delete a specific order, identified by ID.
+
+        Example response:
+
+        .. sourcecode:: http
+
+            HTTP/1.1 200 OK
+            Content-Type: application/json
+
+            {
+              "message": "deleted"
+            }
+
+        :status 200: the order was deleted
+        :status 404: there is no order with the given ID
+        """
         o = self.get_order_or_abort(order_id)
         db.session.delete(o)
         db.session.commit()
@@ -153,9 +364,18 @@ class UserOrderList(Resource):
 
     @resource_list(Order, mfields)
     def get(self, user_id):
-        return Order.query.filter(Order.user_id == user_id)
+        """
+        Get all orders ordered by the user identified by the given user ID.
+        Otherwise identical to :http:get:`/api/orders`.
+        """
+        return Order.query.filter(Order.ordered_by_id == user_id)
 
     def post(self, user_id):
+        """
+        Create a new order. The ordered_by_id parameter is implicitly set by
+        the user_id given in the URL, and cannot be overridden by form
+        parameters. Otherwise, identical to :http:post:`/api/orders`.
+        """
         args = user_order_parser.parse_args()
         args['ordered_by_id'] = user_id
         order = Order.create(**args)
@@ -171,6 +391,10 @@ class OrganizationOrderList(Resource):
 
     @resource_list(Order, mfields)
     def get(self, org_id):
+        """
+        Get all orders placed by users in the organization identified by
+        the given organization ID. Otherwise identical to :http:get:`/api/orders`.
+        """
         return (Order.query
             .join(User)
             .filter(User.organization_id == org_id)
@@ -183,6 +407,11 @@ class OrganizationOrderListForDate(Resource):
 
     @resource_list(Order, mfields)
     def get(self, org_id, for_date):
+        """
+        Get all orders placed on the given date by users in the organization
+        identified by the given organization ID. Otherwise identical to
+        :http:get:`/api/orders`.
+        """
         return (Order.query
             .join(User)
             .filter(User.organization_id == org_id)

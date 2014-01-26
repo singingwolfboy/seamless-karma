@@ -149,7 +149,7 @@ class UserList(Resource):
 
             {
               "message": "created",
-              "id" 7
+              "id": 7
             }
 
         :status 201: the user was successfully created
