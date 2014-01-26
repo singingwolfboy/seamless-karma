@@ -95,9 +95,9 @@ order_parser = copy.deepcopy(user_order_parser)
 order_parser.add_argument('ordered_by_id', type=int, required=True)
 
 
+@handle_sqlalchemy_errors
 class OrderList(Resource):
     model = Order
-    method_decorators = [handle_sqlalchemy_errors]
 
     @resource_list(Order, mfields)
     def get(self):
@@ -112,9 +112,9 @@ class OrderList(Resource):
         return {"message": "created", "id": order.id}, 201, {"Location": location}
 
 
+@handle_sqlalchemy_errors
 class OrderDetail(Resource):
     model = Order
-    method_decorators = [handle_sqlalchemy_errors]
 
     def get_order_or_abort(self, id):
         o = Order.query.get(id)
@@ -147,9 +147,9 @@ class OrderDetail(Resource):
         return {"message": "deleted"}, 200
 
 
+@handle_sqlalchemy_errors
 class UserOrderList(Resource):
     model = Order
-    method_decorators = [handle_sqlalchemy_errors]
 
     @resource_list(Order, mfields)
     def get(self, user_id):
@@ -165,9 +165,9 @@ class UserOrderList(Resource):
         return {"message": "created", "id": order.id}, 201, {"Location": location}
 
 
+@handle_sqlalchemy_errors
 class OrganizationOrderList(Resource):
     model = Order
-    method_decorators = [handle_sqlalchemy_errors]
 
     @resource_list(Order, mfields)
     def get(self, org_id):
@@ -177,9 +177,9 @@ class OrganizationOrderList(Resource):
         )
 
 
+@handle_sqlalchemy_errors
 class OrganizationOrderListForDate(Resource):
     model = Order
-    method_decorators = [handle_sqlalchemy_errors]
 
     @resource_list(Order, mfields)
     def get(self, org_id, for_date):

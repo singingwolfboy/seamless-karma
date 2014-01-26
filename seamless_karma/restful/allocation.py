@@ -9,9 +9,9 @@ from .decorators import handle_sqlalchemy_errors
 from .utils import bool_from_str
 
 
+@handle_sqlalchemy_errors
 class OrganizationUnallocatedForDate(Resource):
-    method_decorators = [handle_sqlalchemy_errors]
-
+    model = True  # FIXME
     def get(self, org_id, for_date):
         # are we including nonparticipants? (users in this org who have not yet
         # participated in an order for this date)

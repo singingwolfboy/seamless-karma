@@ -10,12 +10,11 @@ from flask.ext.restful import abort, marshal
 from .utils import update_url_query
 
 
-def parse_sqlalchemy_exception(func, exception):
+def parse_sqlalchemy_exception(exception, model):
     """
     Given a SQLAlchemy exception, return a string to nicely display to the
     client that explains the error.
     """
-    model = func.im_class.model
     message = exception.orig.args[0]
     if db.engine.name == 'postgresql':
         UNIQUE_RE = re.compile(dedent(r"""
@@ -38,15 +37,23 @@ def parse_sqlalchemy_exception(func, exception):
     return message
 
 
-def handle_sqlalchemy_errors(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        try:
-            return func(*args, **kwargs)
-        except sa.exc.SQLAlchemyError as e:
-            message = parse_sqlalchemy_exception(func, e)
-            abort(400, message=message)
-    return wrapper
+def handle_sqlalchemy_errors(cls):
+    assert cls.model, "Must define model on {}".format(cls)
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except sa.exc.SQLAlchemyError as e:
+                message = parse_sqlalchemy_exception(e, cls.model)
+                abort(400, message=message)
+        return wrapper
+
+    if not hasattr(cls, "method_decorators"):
+        cls.method_decorators = []
+    cls.method_decorators.append(decorator)
+    return cls
 
 
 def resource_list(model, marshal_fields, default_limit=50, max_limit=200, parser=None):

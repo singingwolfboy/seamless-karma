@@ -34,9 +34,9 @@ parser.add_argument('allocation', type=Decimal,
     help="Seamless allocation of user, as a decimal string")
 
 
+@handle_sqlalchemy_errors
 class UserList(Resource):
     model = User
-    method_decorators = [handle_sqlalchemy_errors]
 
     @resource_list(User, mfields, parser=make_optional(parser))
     def get(self):
@@ -171,9 +171,9 @@ class UserList(Resource):
         return {"message": "created", "id": user.id}, 201, {"Location": location}
 
 
+@handle_sqlalchemy_errors
 class UserDetail(Resource):
     model = User
-    method_decorators = [handle_sqlalchemy_errors]
 
     def get_user_or_abort(self, id):
         u = User.query.get(id)
@@ -283,9 +283,9 @@ class UserDetail(Resource):
         return {"message": "deleted"}, 200
 
 
+@handle_sqlalchemy_errors
 class UserByUsername(Resource):
     model = User
-    method_decorators = [handle_sqlalchemy_errors]
 
     def get_user_or_abort(self, username):
         try:
