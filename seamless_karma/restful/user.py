@@ -172,6 +172,76 @@ class UserList(Resource):
 
 
 @handle_sqlalchemy_errors
+class UsersInOrganization(Resource):
+    model = User
+
+    @resource_list(User, mfields, parser=make_optional(parser))
+    def get(self, org_id):
+        """
+        Return a list of all users in the given organization. Identical to
+        :http:get:`/api/users`, but scoped to an organization.
+        """
+        return self.model.query.filter_by(organization_id=org_id)
+
+    def post(self, org_id):
+        """
+        Create a new user in the organization. Organization is determined by
+        the URL, and cannot be set via form parameters. Otherwise identical
+        to :http:post:`/api/users`.
+        """
+        org = Organization.query.get(org_id)
+        if not org:
+            abort(404, "invalid organization ID")
+        args = parser.parse_args()
+        args['organization'] = org
+        user = User.create(**args)
+        db.session.add(user)
+        if user.allocation is None:
+            abort(400, message="allocation is required in values "
+                "(organization has no default allocation set)")
+        db.session.commit()
+        location = url_for('userdetail', user_id=user.id)
+        return {"message": "created", "id": user.id}, 201, {"Location": location}
+
+
+@handle_sqlalchemy_errors
+class UsersInOrganizationByName(Resource):
+    model = User
+
+    def get_org_or_abort(self, name):
+        try:
+            return Organization.query.filter_by(name=name).one()
+        except sa.orm.exc.NoResultFound:
+            abort(404, message="Organization {} does not exist".format(name))
+
+    @resource_list(User, mfields, parser=make_optional(parser))
+    def get(self, name):
+        """
+        Return a list of all users in the given organization. Identical to
+        :http:get:`/api/users`, but scoped to an organization.
+        """
+        org = self.get_org_or_abort(name)
+        return self.model.query.filter_by(organization=org)
+
+    def post(self, name):
+        """
+        Create a new user in the organization. Organization is determined by
+        the URL, and cannot be set via form parameters. Otherwise identical
+        to :http:post:`/api/users`.
+        """
+        args = parser.parse_args()
+        args['organization'] = self.get_org_or_abort(name)
+        user = User.create(**args)
+        db.session.add(user)
+        if user.allocation is None:
+            abort(400, message="allocation is required in values "
+                "(organization has no default allocation set)")
+        db.session.commit()
+        location = url_for('userdetail', user_id=user.id)
+        return {"message": "created", "id": user.id}, 201, {"Location": location}
+
+
+@handle_sqlalchemy_errors
 class UserDetail(Resource):
     model = User
 
@@ -330,3 +400,5 @@ class UserByUsername(Resource):
 api.add_resource(UserList, "/users")
 api.add_resource(UserDetail, "/users/<int:user_id>")
 api.add_resource(UserByUsername, "/users/<username>")
+api.add_resource(UsersInOrganization, "/organizations/<int:org_id>/users")
+api.add_resource(UsersInOrganizationByName, "/organizations/<name>/users")

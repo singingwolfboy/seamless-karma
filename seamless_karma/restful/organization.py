@@ -211,7 +211,7 @@ class OrganizationByName(Resource):
 
     def get_org_or_abort(self, name):
         try:
-            return Organization.query.filter(Organization.name == name).one()
+            return Organization.query.filter_by(name=name).one()
         except sa.orm.exc.NoResultFound:
             abort(404, message="Organization {} does not exist".format(name))
 

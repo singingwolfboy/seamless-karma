@@ -71,3 +71,51 @@ def test_create_duplicate(client):
     assert response.status_code == 400
     obj = json.loads(response.get_data(as_text=True))
     assert "User with username AAgarwal already exists" == obj["message"]
+
+
+def test_users_by_org(client):
+    o1 = OrganizationFactory.create()
+    u1 = UserFactory.create(organization=o1)
+    o2 = OrganizationFactory.create()
+    u2 = UserFactory.create(organization=o2)
+    u3 = UserFactory.create(organization=o2)
+    db.session.commit()
+
+    o1_url = "/api/organizations/{0.id}/users".format(o1)
+    o1_resp = client.get(o1_url)
+    assert o1_resp.status_code == 200
+    o1_obj = json.loads(o1_resp.get_data(as_text=True))
+    assert o1_obj["count"] == 1
+    assert o1_obj["data"][0]["first_name"] == u1.first_name
+
+    o2_url = "/api/organizations/{0.id}/users".format(o2)
+    o2_resp = client.get(o2_url)
+    assert o2_resp.status_code == 200
+    o2_obj = json.loads(o2_resp.get_data(as_text=True))
+    assert o2_obj["count"] == 2
+    assert o2_obj["data"][0]["first_name"] == u2.first_name
+    assert o2_obj["data"][1]["last_name"] == u3.last_name
+
+
+def test_users_by_org_name(client):
+    o1 = OrganizationFactory.create()
+    u1 = UserFactory.create(organization=o1)
+    o2 = OrganizationFactory.create()
+    u2 = UserFactory.create(organization=o2)
+    u3 = UserFactory.create(organization=o2)
+    db.session.commit()
+
+    o1_url = "/api/organizations/{0.name}/users".format(o1)
+    o1_resp = client.get(o1_url)
+    assert o1_resp.status_code == 200
+    o1_obj = json.loads(o1_resp.get_data(as_text=True))
+    assert o1_obj["count"] == 1
+    assert o1_obj["data"][0]["first_name"] == u1.first_name
+
+    o2_url = "/api/organizations/{0.name}/users".format(o2)
+    o2_resp = client.get(o2_url)
+    assert o2_resp.status_code == 200
+    o2_obj = json.loads(o2_resp.get_data(as_text=True))
+    assert o2_obj["count"] == 2
+    assert o2_obj["data"][0]["first_name"] == u2.first_name
+    assert o2_obj["data"][1]["last_name"] == u3.last_name
