@@ -24,9 +24,9 @@ def make_shell_context():
 
 
 def compile_config_js():
-    if not path("seamless_karma/static/scripts/config.js").isfile():
+    if not path("seamless_karma/static/scripts/amd.config.js").isfile():
         sp.call(["./node_modules/coffee-script/bin/coffee", "--compile",
-            "seamless_karma/static/scripts/config.coffee"])
+            "seamless_karma/static/scripts/amd.config.coffee"])
 
 
 class ServerWithPrerun(Server):
@@ -63,7 +63,7 @@ def collectstatic(dry_run, input):
     static_dir = path.getcwd() / "seamless_karma" / "static"
     sp.call(["../../node_modules/bower/bin/bower", "install"], cwd=static_dir)
     compile_config_js()
-    sp.call(["./node_modules/requirejs/bin/r.js", "-o", "build.js"])
+    sp.call(["./node_modules/requirejs/bin/r.js", "-o", "amd.build.js"])
     # copy optimized.js based on hash of contents
     optimized_js = static_dir / "scripts" / "optimized.js"
     text = optimized_js.text()
