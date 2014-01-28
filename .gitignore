@@ -7,7 +7,7 @@ venv3
 .DS_Store
 bower_components/
 node_modules/
-seamless_karma/static/scripts/*.js
+seamless_karma/static/scripts/optimized*
 seamless_karma/static/scripts/*.map
 .coverage
 docs/_build

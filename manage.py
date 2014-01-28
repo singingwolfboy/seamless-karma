@@ -2,7 +2,7 @@
 from seamless_karma import create_app
 from seamless_karma.models import db, User, Organization, Order, OrderContribution
 from flask import current_app
-from flask.ext.script import Manager, Server, prompt_bool
+from flask.ext.script import Manager, prompt_bool
 import sqlalchemy as sa
 import subprocess as sp
 import os
@@ -21,23 +21,6 @@ def make_shell_context():
         User=User, Organization=Organization, Order=Order,
         OrderContribution=OrderContribution
     )
-
-
-def compile_config_js():
-    if not path("seamless_karma/static/scripts/amd.config.js").isfile():
-        sp.call(["./node_modules/coffee-script/bin/coffee", "--compile",
-            "seamless_karma/static/scripts/amd.config.coffee"])
-
-
-class ServerWithPrerun(Server):
-    def handle(self, *args, **kwargs):
-        self.prerun()
-        super(ServerWithPrerun, self).handle(*args, **kwargs)
-
-    def prerun(self):
-        compile_config_js()
-
-manager.add_command("runserver", ServerWithPrerun())
 
 
 @manager.option('--dry-run', action='store_true', default=False)
