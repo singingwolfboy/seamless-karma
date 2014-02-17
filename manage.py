@@ -45,7 +45,6 @@ def collectstatic(dry_run, input):
 
     static_dir = path.getcwd() / "seamless_karma" / "static"
     sp.call(["../../node_modules/bower/bin/bower", "install"], cwd=static_dir)
-    compile_config_js()
     sp.call(["./node_modules/requirejs/bin/r.js", "-o", "amd.build.js"])
     # copy optimized.js based on hash of contents
     optimized_js = static_dir / "scripts" / "optimized.js"
