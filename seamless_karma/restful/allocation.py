@@ -12,8 +12,9 @@ from .decorators import handle_sqlalchemy_errors
 from .utils import bool_from_str
 
 
-@handle_sqlalchemy_errors
 class OrganizationUnallocatedForDate(Resource):
+    decorators = [handle_sqlalchemy_errors()]
+
     def get(self, org_id, for_date):
         """
         Return information about unallocated Seamless money for the given date,

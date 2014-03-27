@@ -23,9 +23,9 @@ parser.add_argument('name', required=True)
 parser.add_argument('default_allocation', type=Decimal)
 
 
-@handle_sqlalchemy_errors
 class OrganizationList(Resource):
     model = Organization
+    decorators = [handle_sqlalchemy_errors(Organization)]
 
     @resource_list(Organization, mfields, parser=make_optional(parser))
     def get(self):
@@ -105,9 +105,9 @@ class OrganizationList(Resource):
         return {"message": "created", "id": org.id}, 201, {"Location": location}
 
 
-@handle_sqlalchemy_errors
 class OrganizationDetail(Resource):
     model = Organization
+    decorators = [handle_sqlalchemy_errors(Organization)]
 
     def get_org_or_abort(self, id):
         o = Organization.query.get(id)
@@ -208,9 +208,9 @@ class OrganizationDetail(Resource):
         return {"message": "deleted"}, 200
 
 
-@handle_sqlalchemy_errors
 class OrganizationByName(Resource):
     model = Organization
+    decorators = [handle_sqlalchemy_errors(Organization)]
 
     def get_org_or_abort(self, name):
         try:

@@ -24,9 +24,9 @@ parser.add_argument('latitude', type=Decimal)
 parser.add_argument('longitude', type=Decimal)
 
 
-@handle_sqlalchemy_errors
 class VendorList(Resource):
     model = Vendor
+    decorators = [handle_sqlalchemy_errors(Vendor)]
 
     @resource_list(Vendor, mfields, parser=make_optional(parser))
     def get(self):
@@ -103,9 +103,9 @@ class VendorList(Resource):
         return {"message": "created", "id": vendor.id}, 201, {"Location": location}
 
 
-@handle_sqlalchemy_errors
 class VendorDetail(Resource):
     model = Vendor
+    decorators = [handle_sqlalchemy_errors(Vendor)]
 
     def get_vendor_or_abort(self, id):
         vendor = Vendor.query.get(id)

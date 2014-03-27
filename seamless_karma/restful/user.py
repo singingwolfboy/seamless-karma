@@ -37,9 +37,9 @@ parser.add_argument('allocation', type=Decimal,
     help="Seamless allocation of user, as a decimal string")
 
 
-@handle_sqlalchemy_errors
 class UserList(Resource):
     model = User
+    decorators = [handle_sqlalchemy_errors(User)]
 
     @resource_list(User, mfields, parser=make_optional(parser))
     def get(self):
@@ -174,9 +174,9 @@ class UserList(Resource):
         return {"message": "created", "id": user.id}, 201, {"Location": location}
 
 
-@handle_sqlalchemy_errors
 class UsersInOrganization(Resource):
     model = User
+    decorators = [handle_sqlalchemy_errors(User)]
 
     @resource_list(User, mfields, parser=make_optional(parser))
     def get(self, org_id):
@@ -207,9 +207,9 @@ class UsersInOrganization(Resource):
         return {"message": "created", "id": user.id}, 201, {"Location": location}
 
 
-@handle_sqlalchemy_errors
 class UsersInOrganizationByName(Resource):
     model = User
+    decorators = [handle_sqlalchemy_errors(User)]
 
     def get_org_or_abort(self, name):
         try:
@@ -244,9 +244,9 @@ class UsersInOrganizationByName(Resource):
         return {"message": "created", "id": user.id}, 201, {"Location": location}
 
 
-@handle_sqlalchemy_errors
 class UserDetail(Resource):
     model = User
+    decorators = [handle_sqlalchemy_errors(User)]
 
     def get_user_or_abort(self, id):
         u = User.query.get(id)
@@ -356,9 +356,9 @@ class UserDetail(Resource):
         return {"message": "deleted"}, 200
 
 
-@handle_sqlalchemy_errors
 class UserByUsername(Resource):
     model = User
+    decorators = [handle_sqlalchemy_errors(User)]
 
     def get_user_or_abort(self, username):
         try:

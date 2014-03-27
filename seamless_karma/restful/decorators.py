@@ -61,9 +61,7 @@ def parse_sqlalchemy_exception(exception, model=None):
     return message
 
 
-def handle_sqlalchemy_errors(cls):
-    model = getattr(cls, "model", None)
-
+def handle_sqlalchemy_errors(model=None):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -73,11 +71,8 @@ def handle_sqlalchemy_errors(cls):
                 message = parse_sqlalchemy_exception(e, model)
                 abort(400, message=message)
         return wrapper
-
-    if not hasattr(cls, "method_decorators"):
-        cls.method_decorators = []
-    cls.method_decorators.append(decorator)
-    return cls
+    decorator.__name__ = str("handle_sqlalchemy_errors")
+    return decorator
 
 
 def resource_list(model, marshal_fields, default_limit=50, max_limit=200, parser=None):
