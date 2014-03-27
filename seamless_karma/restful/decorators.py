@@ -19,23 +19,29 @@ def parse_sqlalchemy_exception(exception, model=None):
     if not model:
         return message
     if db.engine.name == 'postgresql':
-        UNIQUE_RE = re.compile(dedent(r"""
+        re_strs = [
+            r"""
             duplicate key value violates unique constraint "[^"]+"
             DETAIL:  Key \((?P<column>[^)]+)\)=\((?P<value>[^)]+)\) already exists.
-        """).strip())
+            """
+        ]
+        UNIQUE_RES = [re.compile(dedent(s).strip()) for s in re_strs]
     else:  # sqlite
-        UNIQUE_RE = re.compile(dedent(r"""
-            UNIQUE constraint failed: (?P<table>\w+)\.(?P<column>\w+)
-        """).strip())
-    match = UNIQUE_RE.search(message)
-    if match:
-        column = match.group("column")
-        try:
-            value = match.group("value")
-        except IndexError:
-            value = request.form.get(column)
-        return "{model} with {column} {value} already exists".format(
-            model=model.__name__, column=column, value=value)
+        re_strs = [
+            r"column (?P<column>\w+) is not unique",
+            r"UNIQUE constraint failed: (?P<table>\w+)\.(?P<column>\w+)",
+        ]
+        UNIQUE_RES = [re.compile(dedent(s).strip()) for s in re_strs]
+    for regex in UNIQUE_RES:
+        match = regex.search(message)
+        if match:
+            column = match.group("column")
+            try:
+                value = match.group("value")
+            except IndexError:
+                value = request.form.get(column)
+            return "{model} with {column} {value} already exists".format(
+                model=model.__name__, column=column, value=value)
     return message
 
 
