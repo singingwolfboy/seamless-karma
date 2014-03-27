@@ -1,6 +1,9 @@
+# coding=utf-8
+from __future__ import unicode_literals
 import json
 import pytest
 from seamless_karma.extensions import db
+from seamless_karma.models import Vendor
 from factories import VendorFactory
 from six.moves.urllib.parse import urlparse
 
@@ -49,3 +52,17 @@ def test_create(client):
     assert resp2.status_code == 200
     created = json.loads(resp2.get_data(as_text=True))
     assert created["name"] == "India Palace"
+
+
+def test_update_partial(client, vendors):
+    vid = vendors[0].id
+    url = "/api/vendors/{id}".format(id=vid)
+    response = client.put(url, data={
+        "name": "Back Bay Café",
+    })
+    assert response.status_code == 200
+    obj = json.loads(response.get_data(as_text=True))
+    assert obj["id"] == vid
+    assert obj["name"] == "Back Bay Café"
+    vendor = Vendor.query.get(vid)
+    assert vendor.name == "Back Bay Café"
