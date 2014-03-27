@@ -25,7 +25,7 @@ def parse_sqlalchemy_exception(exception, model=None):
         """).strip())
     else:  # sqlite
         UNIQUE_RE = re.compile(dedent(r"""
-            column (?P<column>\w+) is not unique
+            UNIQUE constraint failed: (?P<table>\w+)\.(?P<column>\w+)
         """).strip())
     match = UNIQUE_RE.search(message)
     if match:
