@@ -22,20 +22,26 @@ def parse_sqlalchemy_exception(exception, model=None):
     if not model:
         return message
     if db.engine.name == 'postgresql':
-        re_strs = [
+        unique_re_strs = [
             r"""
             duplicate key value violates unique constraint "[^"]+"
             DETAIL:  Key \((?P<column>[^)]+)\)=\((?P<value>[^)]+)\) already exists.
             """
         ]
-        UNIQUE_RES = [re.compile(dedent(s).strip()) for s in re_strs]
-        NOT_NULL_RES = []
+        not_null_re_strs = [
+            r"""
+            null value in column "(?P<column>\w+)" violates not-null constraint
+            """,
+        ]
+        UNIQUE_RES = [re.compile(dedent(s).strip()) for s in unique_re_strs]
+        NOT_NULL_RES = [re.compile(dedent(s).strip()) for s in not_null_re_strs]
     else:  # sqlite
         unique_re_strs = [
             r"column (?P<column>\w+) is not unique",
             r"UNIQUE constraint failed: (?P<table>\w+)\.(?P<column>\w+)",
         ]
         not_null_re_strs = [
+            r"(?P<table>\w+)\.(?P<column>\w+) may not be NULL",
             r"NOT NULL constraint failed: (?P<table>\w+)\.(?P<column>\w+)",
         ]
         UNIQUE_RES = [re.compile(dedent(s).strip()) for s in unique_re_strs]
