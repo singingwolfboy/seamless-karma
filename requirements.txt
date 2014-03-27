@@ -1,6 +1,6 @@
 Flask
 Flask-Heroku
-SQLAlchemy==0.9.0
+SQLAlchemy==0.9.3
 Flask-SQLAlchemy
 Flask-Script
 Flask-Restful==0.2.12
