@@ -8,12 +8,12 @@ from flask import request
 import six
 from flask.ext.restful import Resource
 from decimal import Decimal
-from .decorators import handle_sqlalchemy_errors
+from .decorators import cors, handle_sqlalchemy_errors
 from .utils import bool_from_str
 
 
 class OrganizationUnallocatedForDate(Resource):
-    decorators = [handle_sqlalchemy_errors()]
+    decorators = [cors, handle_sqlalchemy_errors()]
 
     def get(self, org_id, for_date):
         """

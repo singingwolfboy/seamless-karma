@@ -20,6 +20,7 @@ def test_empty(client, org):
         org_id=org.id)
     response = client.get(url)
     assert response.status_code == 200
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     obj = json.loads(response.get_data(as_text=True))
     assert obj['data'] == []
 
@@ -37,6 +38,7 @@ def test_empty_with_users(client, org, users):
         org_id=org.id)
     response = client.get(url)
     assert response.status_code == 200
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     obj = json.loads(response.get_data(as_text=True))
     assert obj['data'] == []
     assert obj['total_unallocated'] == "0.00"
@@ -49,6 +51,7 @@ def test_empty_with_users_display_nonparticipants(client, org, users):
     )
     response = client.get(url)
     assert response.status_code == 200
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     obj = json.loads(response.get_data(as_text=True))
     assert len(obj['data']) == len(users)
     assert obj['total_unallocated'] == "21.50"
@@ -73,6 +76,7 @@ def test_one_order(client, users):
     )
     response = client.get(url)
     assert response.status_code == 200
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     obj = json.loads(response.get_data(as_text=True))
     assert len(obj['data']) == len(users)
     assert obj['total_unallocated'] == "10.50"

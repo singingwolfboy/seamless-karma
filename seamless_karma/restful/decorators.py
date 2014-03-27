@@ -7,9 +7,10 @@ from six.moves.urllib.parse import urlsplit
 from textwrap import dedent
 
 import sqlalchemy as sa
-from seamless_karma.extensions import db
+from seamless_karma.extensions import db, api
 from flask import request
 from flask.ext.restful import abort, marshal
+from flask.ext.restful.utils import unpack
 from .utils import update_url_query
 
 
@@ -79,6 +80,19 @@ def handle_sqlalchemy_errors(model=None):
         return wrapper
     decorator.__name__ = str("handle_sqlalchemy_errors")
     return decorator
+
+
+def cors(func):
+    """
+    Allows Cross-Origin Resource Sharing
+    http://www.html5rocks.com/en/tutorials/cors/
+    """
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        data, code, headers = unpack(func(*args, **kwargs))
+        headers["Access-Control-Allow-Origin"] = "*"
+        return api.make_response(data, code, headers)
+    return wrapper
 
 
 def resource_list(model, marshal_fields, default_limit=50, max_limit=200, parser=None):

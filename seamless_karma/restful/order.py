@@ -13,7 +13,7 @@ import six
 from .utils import (
     TwoDecimalPlaceField, TWOPLACES, ISOFormatField,
     date_type, datetime_type, make_optional)
-from .decorators import handle_sqlalchemy_errors, resource_list
+from .decorators import cors, handle_sqlalchemy_errors, resource_list
 
 
 class OrderContributionField(fields.Raw):
@@ -102,7 +102,7 @@ order_parser.add_argument('ordered_by_id', type=int, required=True)
 
 class OrderList(Resource):
     model = Order
-    decorators = [handle_sqlalchemy_errors(Order)]
+    decorators = [cors, handle_sqlalchemy_errors(Order)]
 
     @resource_list(Order, mfields)
     def get(self):
@@ -220,7 +220,7 @@ class OrderList(Resource):
 
 class OrderDetail(Resource):
     model = Order
-    decorators = [handle_sqlalchemy_errors(Order)]
+    decorators = [cors, handle_sqlalchemy_errors(Order)]
 
     def get_order_or_abort(self, id):
         o = Order.query.get(id)
@@ -363,7 +363,7 @@ class OrderDetail(Resource):
 
 class UserOrderList(Resource):
     model = Order
-    decorators = [handle_sqlalchemy_errors(Order)]
+    decorators = [cors, handle_sqlalchemy_errors(Order)]
 
     @resource_list(Order, mfields)
     def get(self, user_id):
@@ -390,7 +390,7 @@ class UserOrderList(Resource):
 
 class OrganizationOrderList(Resource):
     model = Order
-    decorators = [handle_sqlalchemy_errors(Order)]
+    decorators = [cors, handle_sqlalchemy_errors(Order)]
 
     @resource_list(Order, mfields)
     def get(self, org_id):
@@ -406,7 +406,7 @@ class OrganizationOrderList(Resource):
 
 class OrganizationOrderListForDate(Resource):
     model = Order
-    decorators = [handle_sqlalchemy_errors(Order)]
+    decorators = [cors, handle_sqlalchemy_errors(Order)]
 
     @resource_list(Order, mfields)
     def get(self, org_id, for_date):

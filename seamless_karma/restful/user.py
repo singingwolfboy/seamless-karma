@@ -8,7 +8,7 @@ from flask import url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
 from decimal import Decimal
 from .utils import TwoDecimalPlaceField, make_optional
-from .decorators import handle_sqlalchemy_errors, resource_list
+from .decorators import cors, handle_sqlalchemy_errors, resource_list
 
 
 mfields = {
@@ -39,7 +39,7 @@ parser.add_argument('allocation', type=Decimal,
 
 class UserList(Resource):
     model = User
-    decorators = [handle_sqlalchemy_errors(User)]
+    decorators = [cors, handle_sqlalchemy_errors(User)]
 
     @resource_list(User, mfields, parser=make_optional(parser))
     def get(self):
@@ -176,7 +176,7 @@ class UserList(Resource):
 
 class UsersInOrganization(Resource):
     model = User
-    decorators = [handle_sqlalchemy_errors(User)]
+    decorators = [cors, handle_sqlalchemy_errors(User)]
 
     @resource_list(User, mfields, parser=make_optional(parser))
     def get(self, org_id):
@@ -209,7 +209,7 @@ class UsersInOrganization(Resource):
 
 class UsersInOrganizationByName(Resource):
     model = User
-    decorators = [handle_sqlalchemy_errors(User)]
+    decorators = [cors, handle_sqlalchemy_errors(User)]
 
     def get_org_or_abort(self, name):
         try:
@@ -246,7 +246,7 @@ class UsersInOrganizationByName(Resource):
 
 class UserDetail(Resource):
     model = User
-    decorators = [handle_sqlalchemy_errors(User)]
+    decorators = [cors, handle_sqlalchemy_errors(User)]
 
     def get_user_or_abort(self, id):
         u = User.query.get(id)
@@ -358,7 +358,7 @@ class UserDetail(Resource):
 
 class UserByUsername(Resource):
     model = User
-    decorators = [handle_sqlalchemy_errors(User)]
+    decorators = [cors, handle_sqlalchemy_errors(User)]
 
     def get_user_or_abort(self, username):
         try:

@@ -11,6 +11,7 @@ from six.moves.urllib.parse import urlparse
 def test_empty(client):
     response = client.get('/api/users')
     assert response.status_code == 200
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     obj = json.loads(response.get_data(as_text=True))
     assert obj['count'] == 0
 
@@ -27,6 +28,7 @@ def users(app):
 def test_existing(client, users):
     response = client.get('/api/users')
     assert response.status_code == 200
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     obj = json.loads(response.get_data(as_text=True))
     assert obj['count'] == len(users)
     assert obj['data'][0]['first_name'] == users[0].first_name
@@ -36,6 +38,7 @@ def test_existing(client, users):
 def test_create_no_args(client):
     response = client.post('/api/users')
     assert response.status_code == 400
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     obj = json.loads(response.get_data(as_text=True))
     assert "Missing required parameter" in obj['message']
 
@@ -50,6 +53,7 @@ def test_create(client):
         "organization_id": org.id,
     })
     assert response.status_code == 201
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     assert "Location" in response.headers
     obj = json.loads(response.get_data(as_text=True))
     assert "id" in obj
@@ -72,6 +76,7 @@ def test_create_duplicate(client):
         "organization_id": org.id,
     })
     assert response.status_code == 400
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     obj = json.loads(response.get_data(as_text=True))
     assert "User with username AAgarwal already exists" == obj["message"]
 
@@ -87,6 +92,7 @@ def test_users_by_org(client):
     o1_url = "/api/organizations/{0.id}/users".format(o1)
     o1_resp = client.get(o1_url)
     assert o1_resp.status_code == 200
+    assert o1_resp.headers["Access-Control-Allow-Origin"] == "*"
     o1_obj = json.loads(o1_resp.get_data(as_text=True))
     assert o1_obj["count"] == 1
     assert o1_obj["data"][0]["first_name"] == u1.first_name
@@ -94,6 +100,7 @@ def test_users_by_org(client):
     o2_url = "/api/organizations/{0.id}/users".format(o2)
     o2_resp = client.get(o2_url)
     assert o2_resp.status_code == 200
+    assert o2_resp.headers["Access-Control-Allow-Origin"] == "*"
     o2_obj = json.loads(o2_resp.get_data(as_text=True))
     assert o2_obj["count"] == 2
     assert o2_obj["data"][0]["first_name"] == u2.first_name
@@ -111,6 +118,7 @@ def test_users_by_org_name(client):
     o1_url = "/api/organizations/{0.name}/users".format(o1)
     o1_resp = client.get(o1_url)
     assert o1_resp.status_code == 200
+    assert o1_resp.headers["Access-Control-Allow-Origin"] == "*"
     o1_obj = json.loads(o1_resp.get_data(as_text=True))
     assert o1_obj["count"] == 1
     assert o1_obj["data"][0]["first_name"] == u1.first_name
@@ -118,6 +126,7 @@ def test_users_by_org_name(client):
     o2_url = "/api/organizations/{0.name}/users".format(o2)
     o2_resp = client.get(o2_url)
     assert o2_resp.status_code == 200
+    assert o2_resp.headers["Access-Control-Allow-Origin"] == "*"
     o2_obj = json.loads(o2_resp.get_data(as_text=True))
     assert o2_obj["count"] == 2
     assert o2_obj["data"][0]["first_name"] == u2.first_name

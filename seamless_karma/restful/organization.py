@@ -8,7 +8,7 @@ from flask import url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
 from decimal import Decimal
 from .utils import TwoDecimalPlaceField, make_optional
-from .decorators import handle_sqlalchemy_errors, resource_list
+from .decorators import cors, handle_sqlalchemy_errors, resource_list
 
 mfields = {
     "id": fields.Integer,
@@ -25,7 +25,7 @@ parser.add_argument('default_allocation', type=Decimal)
 
 class OrganizationList(Resource):
     model = Organization
-    decorators = [handle_sqlalchemy_errors(Organization)]
+    decorators = [cors, handle_sqlalchemy_errors(Organization)]
 
     @resource_list(Organization, mfields, parser=make_optional(parser))
     def get(self):
@@ -107,7 +107,7 @@ class OrganizationList(Resource):
 
 class OrganizationDetail(Resource):
     model = Organization
-    decorators = [handle_sqlalchemy_errors(Organization)]
+    decorators = [cors, handle_sqlalchemy_errors(Organization)]
 
     def get_org_or_abort(self, id):
         o = Organization.query.get(id)
@@ -210,7 +210,7 @@ class OrganizationDetail(Resource):
 
 class OrganizationByName(Resource):
     model = Organization
-    decorators = [handle_sqlalchemy_errors(Organization)]
+    decorators = [cors, handle_sqlalchemy_errors(Organization)]
 
     def get_org_or_abort(self, name):
         try:

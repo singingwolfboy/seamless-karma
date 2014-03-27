@@ -7,7 +7,7 @@ from flask import url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
 from decimal import Decimal
 from .utils import make_optional
-from .decorators import handle_sqlalchemy_errors, resource_list
+from .decorators import cors, handle_sqlalchemy_errors, resource_list
 
 mfields = {
     "id": fields.Integer,
@@ -26,7 +26,7 @@ parser.add_argument('longitude', type=Decimal)
 
 class VendorList(Resource):
     model = Vendor
-    decorators = [handle_sqlalchemy_errors(Vendor)]
+    decorators = [cors, handle_sqlalchemy_errors(Vendor)]
 
     @resource_list(Vendor, mfields, parser=make_optional(parser))
     def get(self):
@@ -105,7 +105,7 @@ class VendorList(Resource):
 
 class VendorDetail(Resource):
     model = Vendor
-    decorators = [handle_sqlalchemy_errors(Vendor)]
+    decorators = [cors, handle_sqlalchemy_errors(Vendor)]
 
     def get_vendor_or_abort(self, id):
         vendor = Vendor.query.get(id)

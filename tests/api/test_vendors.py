@@ -13,6 +13,7 @@ from six.moves.urllib.parse import urlparse
 def test_empty(client):
     response = client.get('/api/vendors')
     assert response.status_code == 200
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     obj = json.loads(response.get_data(as_text=True))
     assert obj['count'] == 0
 
@@ -28,6 +29,7 @@ def vendors(app):
 def test_existing(client, vendors):
     response = client.get('/api/vendors')
     assert response.status_code == 200
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     obj = json.loads(response.get_data(as_text=True))
     assert obj['count'] == len(vendors)
     assert obj['data'][0]['name'] == str(vendors[0].name)
@@ -36,6 +38,7 @@ def test_existing(client, vendors):
 def test_create_no_args(client):
     response = client.post('/api/vendors')
     assert response.status_code == 400
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     obj = json.loads(response.get_data(as_text=True))
     assert "Missing required parameter" in obj['message']
 
@@ -45,6 +48,7 @@ def test_create(client):
         "name": "India Palace"
     })
     assert response.status_code == 201
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     assert "Location" in response.headers
     obj = json.loads(response.get_data(as_text=True))
     assert "id" in obj
@@ -63,6 +67,7 @@ def test_update_name(client, vendors):
         "name": "Back Bay Café",
     })
     assert response.status_code == 200
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     obj = json.loads(response.get_data(as_text=True))
     assert obj["id"] == vid
     assert obj["name"] == "Back Bay Café"
@@ -78,6 +83,7 @@ def test_update_lat_lon(client, vendors):
         "longitude": Decimal("-71.05716"),
     })
     assert response.status_code == 400
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     obj = json.loads(response.get_data(as_text=True))
     assert obj["message"] == "Vendor must have name specified"
 
@@ -93,6 +99,7 @@ def test_update_all(client, vendors):
         "longitude": lon,
     })
     assert response.status_code == 200
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     obj = json.loads(response.get_data(as_text=True))
     assert obj["id"] == vid
     assert obj["name"] == "Back Bay Café"
