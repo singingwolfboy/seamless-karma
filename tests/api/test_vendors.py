@@ -55,7 +55,7 @@ def test_create(client):
     assert created["name"] == "India Palace"
 
 
-def test_update_partial(client, vendors):
+def test_update_name(client, vendors):
     vid = vendors[0].id
     url = "/api/vendors/{id}".format(id=vid)
     response = client.put(url, data={
@@ -67,3 +67,36 @@ def test_update_partial(client, vendors):
     assert obj["name"] == "Back Bay Café"
     vendor = Vendor.query.get(vid)
     assert vendor.name == "Back Bay Café"
+
+
+def test_update_lat_long(client, vendors):
+    vid = vendors[0].id
+    url = "/api/vendors/{id}".format(id=vid)
+    response = client.put(url, data={
+        "latitude": 42.31337,
+        "longitude": -71.05716,
+    })
+    assert response.status_code == 400
+    obj = json.loads(response.get_data(as_text=True))
+    assert obj["message"] == "Vendor must have name specified"
+
+
+def test_update_all(client, vendors):
+    vid = vendors[0].id
+    url = "/api/vendors/{id}".format(id=vid)
+    response = client.put(url, data={
+        "name": "Back Bay Café",
+        "latitude": 42.31337,
+        "longitude": -71.05716,
+    })
+    assert response.status_code == 200
+    obj = json.loads(response.get_data(as_text=True))
+    assert obj["id"] == vid
+    assert obj["name"] == "Back Bay Café"
+    assert obj["latitude"] == 42.31337
+    assert obj["longitude"] == -71.05716
+    vendor = Vendor.query.get(vid)
+    assert vendor.name == "Back Bay Café"
+    assert vendor.latitude == 42.31337
+    assert vendor.longitude == -71.05716
+

@@ -29,12 +29,17 @@ def parse_sqlalchemy_exception(exception, model=None):
             """
         ]
         UNIQUE_RES = [re.compile(dedent(s).strip()) for s in re_strs]
+        NOT_NULL_RES = []
     else:  # sqlite
-        re_strs = [
+        unique_re_strs = [
             r"column (?P<column>\w+) is not unique",
             r"UNIQUE constraint failed: (?P<table>\w+)\.(?P<column>\w+)",
         ]
-        UNIQUE_RES = [re.compile(dedent(s).strip()) for s in re_strs]
+        not_null_re_strs = [
+            r"NOT NULL constraint failed: (?P<table>\w+)\.(?P<column>\w+)",
+        ]
+        UNIQUE_RES = [re.compile(dedent(s).strip()) for s in unique_re_strs]
+        NOT_NULL_RES = [re.compile(dedent(s).strip()) for s in not_null_re_strs]
     for regex in UNIQUE_RES:
         match = regex.search(message)
         if match:
@@ -44,7 +49,15 @@ def parse_sqlalchemy_exception(exception, model=None):
             except IndexError:
                 value = request.form.get(column)
             return "{model} with {column} {value} already exists".format(
-                model=model.__name__, column=column, value=value)
+                model=model.__name__, column=column, value=value
+            )
+    for regex in NOT_NULL_RES:
+        match = regex.search(message)
+        if match:
+            column = match.group("column")
+            return "{model} must have {column} specified".format(
+                model=model.__name__, column=column
+            )
     return message
 
 
