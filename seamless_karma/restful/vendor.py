@@ -13,7 +13,7 @@ mfields = {
     "id": fields.Integer,
     "seamless_id": fields.Integer(default=None),
     "latitude": fields.Arbitrary(default=None),
-    "longitute": fields.Arbitrary(default=None),
+    "longitude": fields.Arbitrary(default=None),
     "name": fields.String,
 }
 

@@ -2,6 +2,7 @@
 from __future__ import unicode_literals
 
 import json
+from decimal import Decimal
 import pytest
 from seamless_karma.extensions import db
 from seamless_karma.models import Vendor
@@ -69,12 +70,12 @@ def test_update_name(client, vendors):
     assert vendor.name == "Back Bay Café"
 
 
-def test_update_lat_long(client, vendors):
+def test_update_lat_lon(client, vendors):
     vid = vendors[0].id
     url = "/api/vendors/{id}".format(id=vid)
     response = client.put(url, data={
-        "latitude": 42.31337,
-        "longitude": -71.05716,
+        "latitude": Decimal("42.31337"),
+        "longitude": Decimal("-71.05716"),
     })
     assert response.status_code == 400
     obj = json.loads(response.get_data(as_text=True))
@@ -84,19 +85,21 @@ def test_update_lat_long(client, vendors):
 def test_update_all(client, vendors):
     vid = vendors[0].id
     url = "/api/vendors/{id}".format(id=vid)
+    lat = Decimal("42.31337")
+    lon = Decimal("-71.05716")
     response = client.put(url, data={
         "name": "Back Bay Café",
-        "latitude": 42.31337,
-        "longitude": -71.05716,
+        "latitude": lat,
+        "longitude": lon,
     })
     assert response.status_code == 200
     obj = json.loads(response.get_data(as_text=True))
     assert obj["id"] == vid
     assert obj["name"] == "Back Bay Café"
-    assert obj["latitude"] == 42.31337
-    assert obj["longitude"] == -71.05716
+    assert Decimal(obj["latitude"]) == lat
+    assert Decimal(obj["longitude"]) == lon
     vendor = Vendor.query.get(vid)
     assert vendor.name == "Back Bay Café"
-    assert vendor.latitude == 42.31337
-    assert vendor.longitude == -71.05716
+    assert vendor.latitude == lat
+    assert vendor.longitude == lon
 
