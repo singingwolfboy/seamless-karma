@@ -11,6 +11,7 @@ from six.moves.urllib.parse import urlparse
 def test_empty(client):
     response = client.get('/api/organizations')
     assert response.status_code == 200
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     obj = json.loads(response.get_data(as_text=True))
     assert obj['count'] == 0
 
@@ -26,6 +27,7 @@ def orgs(app):
 def test_existing(client, orgs):
     response = client.get('/api/organizations')
     assert response.status_code == 200
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     obj = json.loads(response.get_data(as_text=True))
     assert obj['count'] == len(orgs)
     assert obj['data'][0]['default_allocation'] == str(orgs[0].default_allocation)
@@ -35,6 +37,7 @@ def test_existing(client, orgs):
 def test_create_no_args(client):
     response = client.post('/api/organizations')
     assert response.status_code == 400
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     obj = json.loads(response.get_data(as_text=True))
     assert "Missing required parameter" in obj['message']
 
@@ -45,6 +48,7 @@ def test_create(client):
         "default_allocation": "11.50",
     })
     assert response.status_code == 201
+    assert response.headers["Access-Control-Allow-Origin"] == "*"
     assert "Location" in response.headers
     obj = json.loads(response.get_data(as_text=True))
     assert "id" in obj

@@ -3,6 +3,10 @@ from __future__ import unicode_literals
 
 from seamless_karma.models import User, Order, OrderContribution
 from seamless_karma.extensions import db, api
+from seamless_karma.subclass import (
+    TwoDecimalPlaceField, TWOPLACES, ISOFormatField,
+    date_type, datetime_type
+)
 import sqlalchemy as sa
 from flask import url_for
 from flask.ext.restful import Resource, abort, fields, marshal_with, reqparse
@@ -10,9 +14,7 @@ from decimal import Decimal, InvalidOperation
 from datetime import datetime, date
 import copy
 import six
-from .utils import (
-    TwoDecimalPlaceField, TWOPLACES, ISOFormatField,
-    date_type, datetime_type, make_optional)
+from .utils import make_optional
 from .decorators import handle_sqlalchemy_errors, resource_list
 
 

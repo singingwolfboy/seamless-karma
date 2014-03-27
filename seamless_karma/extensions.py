@@ -10,6 +10,6 @@ sentry = Sentry()
 from flask.ext.sqlalchemy import SQLAlchemy
 db = SQLAlchemy()
 
-from flask.ext.restful import Api
+from .subclass import Api
 api = Api(prefix="/api")
 from .restful import *
