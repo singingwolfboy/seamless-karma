@@ -18,7 +18,7 @@ def pytest_addoption(parser):
         help="database backend to use for running tests: sqlite or postgres")
 
 
-@pytest.fixture
+@pytest.yield_fixture
 def app(request, pytestconfig):
     if pytestconfig.option.db == "postgres":
         app = create_app("test_postgres")
@@ -27,13 +27,13 @@ def app(request, pytestconfig):
     ctx = app.test_request_context()
     ctx.push()
     extensions.db.create_all()
-    def fin():
-        extensions.db.session.remove()
-        extensions.db.drop_all(app=app)
-        extensions.db.get_engine(app).dispose()
-        ctx.pop()
-    request.addfinalizer(fin)
-    return app
+
+    yield app
+
+    extensions.db.session.remove()
+    extensions.db.drop_all(app=app)
+    extensions.db.get_engine(app).dispose()
+    ctx.pop()
 
 
 @pytest.fixture
