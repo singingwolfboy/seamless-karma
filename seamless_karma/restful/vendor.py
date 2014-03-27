@@ -1,3 +1,6 @@
+# coding=utf-8
+from __future__ import unicode_literals
+
 from seamless_karma.models import Vendor
 from seamless_karma.extensions import db, api
 from flask import url_for

@@ -1,3 +1,6 @@
+# coding=utf-8
+from __future__ import unicode_literals
+
 from flask import url_for, Markup, current_app
 from path import path
 

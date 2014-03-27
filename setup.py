@@ -1,4 +1,7 @@
 #!/usr/bin/env python
+# coding=utf-8
+from __future__ import unicode_literals
+
 from setuptools import setup
 from setuptools.command.test import test as TestCommand
 import sys

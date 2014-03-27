@@ -1,3 +1,6 @@
+# coding=utf-8
+from __future__ import unicode_literals
+
 from factories import OrganizationFactory, UserFactory, VendorFactory
 from seamless_karma.models import Order, OrderContribution
 from seamless_karma.extensions import db

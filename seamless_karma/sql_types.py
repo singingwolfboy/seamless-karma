@@ -1,3 +1,6 @@
+# coding=utf-8
+from __future__ import unicode_literals
+
 from decimal import Decimal
 from sqlalchemy.sql import type_api, sqltypes
 

@@ -1,3 +1,6 @@
+# coding=utf-8
+from __future__ import unicode_literals
+
 from seamless_karma.extensions import db
 from seamless_karma.sql_types import Currency
 import sqlalchemy as sa
